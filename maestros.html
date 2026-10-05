@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#d4af37">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CECYTEM 101">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maestros - CECYTEM Ecatepec II</title>
+<link rel="stylesheet" href="style.css">
+<script src="supabase.js"></script>
+<link rel="stylesheet" href="panel.css">
+<style>
+  .nota{font-size:12px;color:#8da2b8;margin:6px 0 12px;line-height:1.5}
+  .lista-materias{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+  .lista-materias label{background:rgba(255,255,255,.05);border:1px solid rgba(212,175,55,.3);border-radius:6px;padding:6px 10px;font-size:12px;color:#b0c4de}
+  .tabla-m{width:100%;border-collapse:collapse}
+  .tabla-m th,.tabla-m td{border:1px solid rgba(212,175,55,.2);padding:7px 8px;font-size:12px;text-align:center}
+  .tabla-m th{background:rgba(212,175,55,.1);color:#d4af37}
+  .tabla-m td.n{text-align:left}
+  .est-Presente{color:#2ecc71;font-weight:700}.est-Falta{color:#ff6b6b;font-weight:700}.est-Retardo,.est-Justificado{color:#f5b84b;font-weight:700}.est-Sin{color:#6b7f95}
+</style>
+</head>
+<body>
+
+<div class="sidebar" id="appSidebar">
+    <div class="sidebar-brand">CECYTEM ECATEPEC II</div>
+    <div class="reloj-sidebar" id="global-reloj-fecha">Sincronizando reloj...</div>
+    <a href="dashboard.html" class="nav-btn">📚 Académico</a>
+    <a href="personal.html" class="nav-btn">👤 Personal</a>
+    <a href="jefe.html" class="nav-btn">📋 Jefe de Grupo</a>
+    <a href="grupo.html" class="nav-btn">👥 Mi Grupo</a>
+    <a href="maestros.html" class="nav-btn active">👨‍🏫 Maestros</a>
+    <a href="horarios.html" class="nav-btn">⏰ Horario</a>
+        <a href="agenda.html" class="nav-btn">🗓️ Agenda</a>
+        <a href="documentos.html" class="nav-btn">🗂️ Documentos</a>
+</div>
+
+<div class="main-content">
+    <button class="menu-toggle" onclick="toggleMenu()">☰ Menú</button>
+    <h2>Panel de Maestros - Grupo 101 Programación</h2>
+    <p class="nota">Ves la lista de asistencia del grupo solo en los días en que tienes clase con él, según el horario oficial.</p>
+
+    <div class="seccion-control">
+        <h3>Mi perfil</h3>
+        <div class="acciones-lista">
+            <select id="selMaestro" class="form-control-custom" style="padding:7px;min-width:200px" onchange="elegirMaestro(this.value)"></select>
+            <button class="btn-sec" id="btnNuevo" onclick="mostrarForm(true)">＋ Nuevo maestro</button>
+            <button class="btn-sec" id="btnBorrar" onclick="borrarMaestro()">Eliminar</button>
+        </div>
+        <div id="formMaestro" hidden>
+            <input id="inpNombre" type="text" class="form-control-custom" placeholder="Nombre del maestro" style="padding:8px;width:100%;max-width:420px">
+            <div class="nota">Materias que imparte al Grupo 101:</div>
+            <div class="lista-materias" id="checksMaterias"></div>
+            <div class="acciones-lista">
+                <button class="btn-accion-qr" onclick="guardarMaestro()">Guardar maestro</button>
+                <button class="btn-sec" onclick="mostrarForm(false)">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="vacio" class="seccion-control nota" hidden>Aún no hay maestros. Toca <b>＋ Nuevo maestro</b> y elige las materias que imparte para ver su lista.</div>
+
+    <div id="areaMaestro" hidden>
+        <div class="tabs-container">
+            <button class="tab-btn active" onclick="tab('lista', event)">📅 Lista del día</button>
+            <button class="tab-btn" onclick="tab('horario', event)">⏰ Mi horario</button>
+            <button class="tab-btn" onclick="tab('resumen', event)">📊 Resumen del mes</button>
+        </div>
+
+        <div id="panel-lista" class="seccion-control control-panel-content active">
+            <h3>Lista de asistencia del día</h3>
+            <div class="acciones-lista">
+                <label style="font-size:12px;color:#b0c4de">Día de clase:
+                    <select id="selDia" class="form-control-custom" style="padding:6px" onchange="cambiarDia(this.value)"></select></label>
+                <button class="btn-sec" onclick="csvDiaMaestro()">Descargar CSV</button>
+            </div>
+            <div id="infoDia" style="font-size:13px;color:#d4af37;margin-bottom:6px"></div>
+            <div id="estadoLista" class="nota"></div>
+            <div class="barra-estado" id="barraEstado"></div>
+            <div style="overflow-x:auto"><table class="tabla-m"><thead><tr><th>No.</th><th>No. Control</th><th>Alumno</th><th>Estatus</th></tr></thead><tbody id="tb-lista"></tbody></table></div>
+        </div>
+
+        <div id="panel-horario" class="seccion-control control-panel-content">
+            <h3>Mi horario con el Grupo 101</h3>
+            <div style="overflow-x:auto"><table class="tabla-m"><thead><tr><th>Hora</th><th>Lunes</th><th>Martes</th><th>Miércoles</th><th>Jueves</th><th>Viernes</th></tr></thead><tbody id="tb-horario"></tbody></table></div>
+        </div>
+
+        <div id="panel-resumen" class="seccion-control control-panel-content">
+            <h3>Asistencia del mes en mis clases</h3>
+            <div id="infoResumen" class="nota"></div>
+            <div style="overflow-x:auto"><table class="tabla-m"><thead><tr><th>No.</th><th>Alumno</th><th>Asist.</th><th>Faltas</th><th>Just.</th><th>%A</th></tr></thead><tbody id="tb-resumen"></tbody></table></div>
+        </div>
+    </div>
+</div>
+
+<script>window.CECYTEM_PAGE = { roles: ['maestro', 'moderador', 'admin'] };</script>
+<script src="app.js"></script>
+<script src="escuela.js"></script>
+<script src="avisos.js"></script>
+<script src="datos.js"></script>
+<script>
+// Maestros guardados en este navegador. Con el backend, cada maestro entrará con su cuenta y rol.
+const KM = { lista: 'maestros_lista', actual: 'maestro_actual' };
+let maestros = Array.isArray(leer(KM.lista, [])) ? leer(KM.lista, []) : [];
+let actualId = localStorage.getItem(KM.actual);
+let dia = HOY;
+
+const maestro = () => maestros.find(m => m.id === actualId);
+const clasesMaestro = f => clasesDelDia(f).filter(c => maestro().materias.includes(c.materia));
+const diasClase = ym => habilesDe(ym).filter(d => clasesMaestro(d).length);
+
+function resumenClases(f) {   // "Inglés I · 10:40 - 11:30, 11:30 - 12:20"
+    const por = {};
+    clasesMaestro(f).forEach(c => (por[c.materia] = por[c.materia] || []).push(c.hora));
+    return Object.entries(por).map(([m, hs]) => `${m} · ${hs.join(', ')}`).join(' | ');
+}
+
+// ---------- Perfil ----------
+function mostrarForm(v) {
+    $('formMaestro').hidden = !v;
+    if (v) { $('inpNombre').value = ''; $('checksMaterias').innerHTML = MATERIAS.map(m => `<label><input type="checkbox" value="${esc(m)}"> ${esc(m)}</label>`).join(''); }
+}
+function guardarMaestro() {
+    const nombre = $('inpNombre').value.trim(), materias = [...document.querySelectorAll('#checksMaterias input:checked')].map(i => i.value);
+    if (!nombre || !materias.length) return alert('Escribe el nombre y elige al menos una materia.');
+    const m = { id: 'm' + Date.now(), nombre, materias };
+    maestros.push(m); guardar(KM.lista, maestros); if (typeof guardarDatoRemoto==='function') guardarDatoRemoto(KM.lista, maestros); actualId = m.id; localStorage.setItem(KM.actual, actualId);
+    mostrarForm(false); renderTodo();
+}
+function elegirMaestro(id) { actualId = id; localStorage.setItem(KM.actual, id); renderTodo(); }
+function borrarMaestro() {
+    const m = maestro(); if (!m || !confirm(`¿Eliminar a ${m.nombre}?`)) return;
+    maestros = maestros.filter(x => x.id !== m.id); guardar(KM.lista, maestros); if (typeof guardarDatoRemoto==='function') guardarDatoRemoto(KM.lista, maestros);
+    actualId = maestros[0] ? maestros[0].id : null; localStorage.setItem(KM.actual, actualId || ''); renderTodo();
+}
+
+// ---------- Lista del día ----------
+function diaInicial() {
+    const dias = diasClase(HOY.slice(0, 7));
+    return dias.includes(HOY) ? HOY : (dias.filter(d => d <= HOY).pop() || dias[0] || HOY);
+}
+function cambiarDia(f) { dia = f; renderLista(); }
+function renderLista() {
+    const dias = diasClase(HOY.slice(0, 7));
+    $('selDia').innerHTML = dias.map(d => `<option value="${d}" ${d === dia ? 'selected' : ''} ${d > HOY ? 'disabled' : ''}>${etiquetaDia(d)}${cierres[d] ? ' ✔' : ''}</option>`).join('');
+    const hoyClase = dias.includes(HOY);
+    $('infoDia').textContent = dias.length ? `${etiquetaDia(dia)}: ${resumenClases(dia)}` : 'Ninguna de tus materias está en el horario del Grupo 101.';
+    $('estadoLista').textContent = (hoyClase ? '' : 'Hoy no tienes clase con el Grupo 101; se muestra tu último día de clase. ')
+        + (cierres[dia] ? '🔒 Lista cerrada por el jefe de grupo.' : 'Lista en proceso: se actualiza conforme el jefe de grupo registra.');
+    const c = { Presente: 0, Retardo: 0, Falta: 0, Justificado: 0, 'Sin registrar': 0 };
+    ALUMNOS.forEach(a => c[estatusDe(dia, a.control)]++);
+    $('barraEstado').innerHTML = Object.entries(c).map(([k, v]) => `<span class="chip-estado ${k.replace(' ', '')}"><b>${v}</b>${k}</span>`).join('');
+    $('tb-lista').innerHTML = ALUMNOS.map(a => { const e = estatusDe(dia, a.control);
+        return `<tr><td>${a.id}</td><td>${a.control}</td><td class="n">${esc(a.nombre)}</td><td class="est-${e.split(' ')[0]}">${e === 'Presente' ? '✓ Presente' : e}</td></tr>`; }).join('');
+}
+function csvDiaMaestro() {
+    descargar(`Asistencia_${GRUPO}_${dia}_${maestro().nombre.replace(/\s+/g, '_')}.csv`, [['No', 'Numero_Control', 'Nombre', 'Fecha', 'Materia(s)', 'Estatus'],
+        ...ALUMNOS.map(a => [a.id, a.control, a.nombre, dia, resumenClases(dia), estatusDe(dia, a.control)])]);
+}
+
+// ---------- Horario ----------
+function renderHorario() {
+    const mias = maestro().materias;
+    $('tb-horario').innerHTML = horarioData.map(f => f.tipo ? `<tr><td colspan="6" style="color:#ffd700;font-weight:700">${f.texto}</td></tr>`
+        : `<tr><td style="color:#d4af37;font-weight:700">${f.hora}</td>${SEMANA.map(d => `<td>${mias.includes(f[d]) ? `<span class="badge-codigo">${esc(f[d])}</span>` : '<span class="est-Sin">-</span>'}</td>`).join('')}</tr>`).join('');
+}
+
+// ---------- Resumen del mes (solo mis días de clase con lista cerrada) ----------
+function renderResumen() {
+    const dias = diasClase(HOY.slice(0, 7)).filter(d => cierres[d]);
+    let riesgo = 0;
+    const filas = ALUMNOS.map(a => {
+        let p = 0, j = 0, f = 0;
+        dias.forEach(d => { const e = estatusDe(d, a.control); if (e === 'Presente' || e === 'Retardo') p++; else if (e === 'Justificado') j++; else f++; });
+        const base = dias.length - j, pct = base > 0 ? Math.round(p / base * 100) : null;
+        if (pct !== null && pct < 80) riesgo++;
+        const cls = pct === null ? '' : pct >= 80 ? 'pct-ok' : pct >= 70 ? 'pct-warn' : 'pct-bad';
+        return `<tr><td>${a.id}</td><td class="n">${esc(a.nombre)}</td><td>${p}</td><td>${f}</td><td>${j}</td><td class="${cls}"><b>${pct === null ? '–' : pct + '%'}</b></td></tr>`;
+    }).join('');
+    $('infoResumen').textContent = dias.length ? `${dias.length} día(s) de clase con lista cerrada · alumnos por debajo de 80%: ${riesgo}. Verde ≥80% · amarillo 70–79% · rojo <70%.` : 'Todavía no hay días de clase con lista cerrada este mes.';
+    $('tb-resumen').innerHTML = filas;
+}
+
+// ---------- Pestañas y arranque ----------
+function tab(sec, evt) {
+    document.querySelectorAll('.control-panel-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    $('panel-' + sec).classList.add('active'); evt.currentTarget.classList.add('active');
+}
+function renderTodo() {
+    if (!maestro() && maestros[0]) { actualId = maestros[0].id; localStorage.setItem(KM.actual, actualId); }
+    $('selMaestro').innerHTML = maestros.map(m => `<option value="${m.id}" ${m.id === actualId ? 'selected' : ''}>${esc(m.nombre)}</option>`).join('');
+    const hay = !!maestro();
+    $('vacio').hidden = hay; $('areaMaestro').hidden = !hay; $('btnBorrar').hidden = !hay; $('selMaestro').hidden = !hay;
+    if (!hay) return;
+    dia = diaInicial(); renderLista(); renderHorario(); renderResumen();
+}
+// Si el jefe de grupo registra en otra pestaña del mismo navegador, esta lista se actualiza sola.
+let soloMio = false;
+const refrescar = () => { if (maestro()) { renderLista(); renderResumen(); } };
+// Si el usuario es docente con materias asignadas por el admin, ve solo las suyas (sin crear/borrar maestros).
+async function cargarMisMaterias() {
+    const p = obtenerDatosSeguros('usuarioActual', null);
+    if (!p || !p.personal_id || !window.supabaseClient) return;
+    const { data, error } = await supabaseClient.from('asignaciones_docentes').select('materia').eq('personal_id', p.personal_id);
+    if (error || !data || !data.length) return;
+    maestros = [{ id: 'yo', nombre: p.nombre_completo || 'Docente', materias: data.map(r => r.materia) }];
+    actualId = 'yo'; soloMio = true; renderTodo();
+    ['btnNuevo', 'btnBorrar', 'selMaestro'].forEach(id => $(id).hidden = true);
+}
+window.addEventListener('storage', () => { asis = leer(K.asis, {}); cierres = leer(K.cierre, {}); refrescar(); });
+window.addEventListener('DOMContentLoaded', async () => {
+    iniciarReloj(); renderTodo();
+    await cargarMisMaterias();
+    if (await cargarGrupoRemoto()) refrescar();
+    suscribirGrupo(refrescar);          // la lista se actualiza sola cuando el jefe registra
+});
+</script>
+</body>
+</html>

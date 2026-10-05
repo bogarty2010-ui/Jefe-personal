@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#d4af37">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CECYTEM 101">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jefe de Grupo - CECYTEM Ecatepec II</title>
+<link rel="stylesheet" href="style.css">
+<script src="supabase.js"></script>
+<!-- Librería para escanear códigos QR con la cámara -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="stylesheet" href="panel.css">
+</head>
+<body>
+
+<!-- Menú lateral unificado -->
+<div class="sidebar" id="appSidebar">
+    <div class="sidebar-brand">CECYTEM ECATEPEC II</div>
+    <div class="reloj-sidebar" id="global-reloj-fecha">Sincronizando reloj...</div>
+    <a href="dashboard.html" class="nav-btn">📚 Académico</a>
+    <a href="personal.html" class="nav-btn">👤 Personal</a>
+    <a href="jefe.html" class="nav-btn active">📋 Jefe de Grupo</a>
+    <a href="grupo.html" class="nav-btn">👥 Mi Grupo</a>
+    <a href="maestros.html" class="nav-btn">👨‍🏫 Maestros</a>
+    <a href="horarios.html" class="nav-btn">⏰ Horario</a>
+        <a href="agenda.html" class="nav-btn">🗓️ Agenda</a>
+        <a href="documentos.html" class="nav-btn">🗂️ Documentos</a>
+</div>
+
+<div class="main-content">
+    <button class="menu-toggle" onclick="toggleMenu()">☰ Menú</button>
+
+    <h2>Panel de Jefe de Grupo - Grupo 101 Programación</h2>
+    <p style="color:#eab308;font-weight:700;font-size:12px">Cuenta: <span data-usuario-nombre>Bogart Yael Palapa Hernández</span> · Rol: <span data-usuario-rol>ADMIN</span></p>
+    <p style="color: #b0c4de; font-size: 13px; margin-bottom: 20px;">Control oficial de asistencia por escaneo QR o selección manual.</p>
+
+    <!-- Pestañas de Navegación -->
+    <div class="tabs-container">
+        <button class="tab-btn active" onclick="cambiarSeccion('asistencia', event)">📅 Asistencia (Escanear / Manual)</button>
+        <button class="tab-btn" onclick="cambiarSeccion('qr', event)">📷 Códigos QR Estudiantiles</button>
+        <button class="tab-btn" onclick="cambiarSeccion('uniforme', event)">👔 Uniforme y Credencial</button>
+        <button class="tab-btn" onclick="cambiarSeccion('material', event)">📖 Cuaderno y Libro</button>
+        <button class="tab-btn" onclick="cambiarSeccion('aseo', event)">🧹 Aseo</button>
+    </div>
+
+    <!-- 1. APARTADO DE ASISTENCIA (CON ESCÁNER Y MANUAL) -->
+    <div id="panel-asistencia" class="seccion-control control-panel-content active">
+        <h3>Control de Asistencia Diario</h3>
+        
+        <div class="scanner-box">
+            <p style="color: #d4af37; margin-bottom: 10px; font-weight: bold;">📷 Pase de lista por Escáner QR</p>
+            <div id="alertaExito" class="alerta-escaneo"></div>
+            <button class="btn-accion-qr" onclick="iniciarEscanner()">Activar Cámara para Escanear</button>
+            <button class="btn-sec" onclick="detenerEscanner()">Detener cámara</button>
+            <div id="reader" style="margin-top: 15px;"></div>
+        </div>
+
+        <div class="acciones-lista">
+            <input id="buscar" type="search" class="form-control-custom" placeholder="Buscar alumno o control" oninput="renderAsistencia()" style="padding:7px;min-width:200px">
+            <span id="estadoSync" aria-live="polite">☁ Conectando…</span>
+        </div>
+        <div id="avisoDia" style="font-size:13px;color:#d4af37;margin-bottom:10px"></div>
+        <div class="barra-estado" id="barraEstado" aria-live="polite"></div>
+        <div class="acciones-lista">
+            <button class="btn-sec" id="btnTodos" onclick="todosPresentes()">Sin registrar → ✓</button>
+            <button class="btn-accion-qr" id="btnCerrar" onclick="cerrarDia()">Cerrar lista y descargar CSV</button>
+            <button class="btn-sec" id="btnReabrir" onclick="reabrirDia()" hidden>Reabrir lista</button>
+            <button class="btn-sec" onclick="csvDia()">CSV del día</button>
+            <button class="btn-sec" onclick="csvMes()">CSV del mes</button>
+            <button class="btn-sec" onclick="descargarXLSX()">Excel (.xlsx)</button>
+            <button class="btn-sec" onclick="imprimirPDF()">PDF / Imprimir</button>
+            <button class="btn-sec" onclick="descargarPNG()">Imagen (PNG)</button>
+        </div>
+        <div class="leyenda">Toca el número de un día para elegirlo y toca una celda para marcar: <b class="c-P">✓</b> asistió · <b class="c-R">R</b> retardo · <b class="c-J">J</b> justificado · <b class="c-F">F</b> falta · vacío sin registro. El retardo cuenta como asistencia y lo justificado no cuenta en contra. %A = asistencias ÷ días con lista cerrada (🔒). Verde ≥80% · amarillo 70–79% · rojo &lt;70%.</div>
+        <div class="hoja-wrap" id="hojaWrap"><table class="hoja"><thead id="hoja-head"></thead><tbody id="hoja-body"></tbody></table></div>
+    </div>
+
+    <!-- 0. APARTADO DE CÓDIGOS QR INDIVIDUALES -->
+    <div id="panel-qr" class="seccion-control control-panel-content">
+        <h3>Códigos QR Estudiantiles</h3>
+        <div style="overflow-x: auto;">
+            <table class="academic-table">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>No. Control Escolar</th>
+                        <th>Nombre del Alumno</th>
+                        <th style="text-align: center;">Código QR Único</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-qr-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 2. APARTADO DE UNIFORME Y CREDENCIAL -->
+    <div id="panel-uniforme" class="seccion-control control-panel-content">
+        <h3>Revisión de Uniforme y Credencial Escolar</h3>
+        <div style="overflow-x: auto;">
+            <table class="academic-table">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Alumno</th>
+                        <th style="text-align: center;">Uniforme Reglamentario</th>
+                        <th style="text-align: center;">Credencial Visible</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-uniforme-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 3. APARTADO DE CUADERNO Y LIBRO -->
+    <div id="panel-material" class="seccion-control control-panel-content">
+        <h3>Revisión de Cuadernos y Libros</h3>
+        <div style="overflow-x: auto;">
+            <table class="academic-table">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Alumno</th>
+                        <th style="text-align: center;">Cuaderno al Corriente</th>
+                        <th style="text-align: center;">Libro / Material Didáctico</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-material-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 4. APARTADO DE ASEO -->
+    <div id="panel-aseo" class="seccion-control control-panel-content">
+        <h3>Comisiones de Aseo del Aula</h3>
+        <div style="overflow-x: auto;">
+            <table class="academic-table">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Alumno</th>
+                        <th style="text-align: center;">Comisión de Aseo</th>
+                        <th style="text-align: center;">Estatus de Cumplimiento</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-aseo-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+
+</div>
+
+<div id="hojaImpresion" aria-hidden="true"></div>
+<script>window.CECYTEM_PAGE = { jefe: true };</script>
+<script src="app.js"></script>
+<script src="escuela.js"></script>
+<script src="avisos.js"></script>
+<script src="datos.js"></script>
+<script>
+// ==========================================
+// CONFIGURACIÓN Y DATOS (Frontend con localStorage; backend después)
+// ==========================================
+let fecha = HOY, html5QrCode = null, ultimoEscaneo = { texto: '', t: 0 };
+
+// ==========================================
+// CALENDARIO
+// ==========================================
+
+function fechaInicial() {
+    const dias = habilesDe(HOY.slice(0, 7));
+    return dias.includes(HOY) ? HOY : (dias.filter(d => d <= HOY).pop() || dias[0]);
+}
+
+// ==========================================
+// MIGRACIÓN: datos guardados por No. de lista (versiones anteriores) → No. de control
+// ==========================================
+function migrar() {
+    if (localStorage.getItem(K.mig)) return;
+    // La lista vieja tenía 31 alumnos; el nuevo alumno quedó en la posición 11.
+    const porIdViejo = i => (ALUMNOS[i <= 10 ? i - 1 : i] || {}).control;
+    Object.entries(leer('jefe_grupo_estado_101', {})).forEach(([id, e]) => {
+        const c = porIdViejo(+id); if (!c) return;
+        const { asistencia, ...resto } = e; check[c] = resto;   // la asistencia vieja (todos "Presente" por defecto) no es confiable
+    });
+    Object.keys(localStorage).filter(k => /^jefe_asistencia_101_\d{4}-\d{2}-\d{2}$/.test(k)).forEach(k => {
+        const f = k.slice(-10);
+        Object.entries(leer(k, {})).forEach(([id, st]) => { const c = porIdViejo(+id); if (c) (asis[f] = asis[f] || {})[c] = st; });
+    });
+    guardar(K.check, check); guardar(K.asis, asis); localStorage.setItem(K.mig, '1');
+}
+
+// ==========================================
+// ASISTENCIA
+// ==========================================
+const cerrada = () => !!cierres[fecha];
+
+function registrar(control, est, sinPintar, sinRemoto) {
+    if (cerrada()) return false;
+    const d = asis[fecha] = asis[fecha] || {};
+    if (est === 'Sin registrar') delete d[control]; else d[control] = est;
+    guardar(K.asis, asis);
+    if (!sinRemoto) guardarAsistenciaRemoto([{ fecha, control, estatus: est }]);
+    if (!sinPintar) renderAsistencia();
+    return true;
+}
+const CICLO = ['Sin registrar', 'Presente', 'Retardo', 'Justificado', 'Falta'];
+const DIA_SEM = 'DLMMJVS';
+function elegirDia(f) { if (f > HOY) return; fecha = f; renderAsistencia(); }
+function tocarCelda(control, f) {
+    if (f > HOY) return;
+    if (cierres[f]) { $('avisoDia').textContent = '⚠ Ese día está cerrado: tócalo en el encabezado y usa "Reabrir lista".'; return; }
+    fecha = f;
+    registrar(control, CICLO[(CICLO.indexOf(estatusDe(f, control)) + 1) % CICLO.length]);
+}
+function renderHoja() {
+    const dias = habilesDe(HOY.slice(0, 7)), q = $('buscar').value.trim().toLowerCase();
+    const cab = d => `<th class="dia ${d === fecha ? 'act' : ''} ${d > HOY ? 'fut' : ''}" onclick="elegirDia('${d}')">${d.slice(8)}<small>${DIA_SEM[new Date(d + 'T12:00:00').getDay()]}${cierres[d] ? '🔒' : ''}</small></th>`;
+    $('hoja-head').innerHTML = `<tr><th class="c1">No.</th><th class="c2">Alumno</th>${dias.map(cab).join('')}<th>%A</th></tr>`;
+    $('hoja-body').innerHTML = ALUMNOS.filter(a => !q || a.nombre.toLowerCase().includes(q) || a.control.includes(q)).map(a => {
+        const celdas = dias.map(d => {
+            const e = estatusDe(d, a.control), vacio = e === 'Sin registrar';
+            return `<td class="cel ${vacio ? '' : 'c-' + LETRA[e]} ${d === fecha ? 'act' : ''} ${d > HOY ? 'fut' : ''}" onclick="tocarCelda('${a.control}','${d}')">${vacio ? '' : e === 'Presente' ? '✓' : LETRA[e]}</td>`;
+        }).join('');
+        const rs = resumenAlumno(a.control, dias);
+        const cls = rs.pct === null ? '' : rs.pct >= 80 ? 'pct-ok' : rs.pct >= 70 ? 'pct-warn' : 'pct-bad';
+        return `<tr><td class="c1">${a.id}</td><td class="c2"><strong>${a.nombre}</strong><small>${a.control}</small></td>${celdas}<td class="${cls}" style="padding:0 8px"><strong>${rs.pct === null ? '–' : rs.pct + '%'}</strong></td></tr>`;
+    }).join('');
+}
+function scrollAActivo() {
+    const th = document.querySelector('#hoja-head th.act'), w = $('hojaWrap');
+    if (th && w) w.scrollLeft = Math.max(0, th.offsetLeft - document.querySelector('#hoja-head th.c1').offsetWidth - document.querySelector('#hoja-head th.c2').offsetWidth - 40);
+}
+function renderAsistencia() {
+    renderHoja();
+    $('btnCerrar').hidden = $('btnTodos').hidden = cerrada(); $('btnReabrir').hidden = !cerrada();
+    const hoyHabil = habilesDe(HOY.slice(0, 7)).includes(HOY);
+    $('avisoDia').textContent = `Día elegido: ${etiquetaDia(fecha)}` + (cerrada() ? ' · lista cerrada 🔒' : '') + (hoyHabil ? '' : ' · hoy no es día hábil');
+    pintarContadores();
+}
+function pintarContadores() {
+    const c = { Presente: 0, Retardo: 0, Falta: 0, Justificado: 0, 'Sin registrar': 0 };
+    ALUMNOS.forEach(a => c[estatusDe(fecha, a.control)]++);
+    $('barraEstado').innerHTML = Object.entries(c).map(([k, v]) => `<span class="chip-estado ${k.replace(' ', '')}"><b>${v}</b>${k}</span>`).join('');
+}
+function todosPresentes() {
+    const pend = ALUMNOS.filter(a => estatusDe(fecha, a.control) === 'Sin registrar');
+    if (!pend.length || !confirm(`¿Marcar Presente a ${pend.length} alumno(s) sin registrar?`)) return;
+    pend.forEach(a => registrar(a.control, 'Presente', true, true));
+    guardarAsistenciaRemoto(pend.map(a => ({ fecha, control: a.control, estatus: 'Presente' })));
+    renderAsistencia();
+}
+function cerrarDia() {
+    const pend = ALUMNOS.filter(a => estatusDe(fecha, a.control) === 'Sin registrar');
+    if (!confirm(`${pend.length} alumno(s) sin registrar pasarán a Falta. ¿Cerrar la lista del ${etiquetaDia(fecha)}?`)) return;
+    pend.forEach(a => registrar(a.control, 'Falta', true, true));
+    guardarAsistenciaRemoto(pend.map(a => ({ fecha, control: a.control, estatus: 'Falta' })));
+    cierres[fecha] = true; guardar(K.cierre, cierres); guardarDatoGrupo('cierre:' + fecha, { cerrada: true });
+    renderAsistencia(); csvDia();
+    aviso('✅ Lista cerrada y reporte descargado', false);
+}
+function reabrirDia() {
+    if (!confirm('¿Reabrir la lista de este día? Las faltas se conservan hasta que las cambies.')) return;
+    delete cierres[fecha]; guardar(K.cierre, cierres); borrarDatoGrupo('cierre:' + fecha); renderAsistencia();
+}
+
+// ==========================================
+// ESCÁNER QR
+// ==========================================
+function aviso(html, esAviso) {
+    const a = $('alertaExito');
+    a.style.display = 'block';
+    a.style.borderColor = a.style.color = esAviso ? '#f5b84b' : '#2ecc71';
+    a.innerHTML = html;
+    clearTimeout(aviso.id); aviso.id = setTimeout(() => { a.style.display = 'none'; }, 3000);
+}
+function iniciarEscanner() {
+    if (!html5QrCode) html5QrCode = new Html5Qrcode('reader');
+    html5QrCode.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 250, height: 250 } }, texto => {
+        const ahora = Date.now();
+        if (texto === ultimoEscaneo.texto && ahora - ultimoEscaneo.t < 3000) return;   // anti-rebote
+        ultimoEscaneo = { texto, t: ahora };
+        const a = ALUMNOS.find(x => texto.includes(x.control));
+        if (!a) return aviso('⚠ Ese QR no pertenece al Grupo 101', true);
+        if (fecha !== fechaInicial()) return aviso('⚠ El escáner marca el día de hoy: toca el día de hoy en la hoja', true);
+        if (cerrada()) return aviso('⚠ La lista de hoy está cerrada', true);
+        if (estatusDe(fecha, a.control) === 'Presente') return aviso(`ℹ ${a.nombre} ya estaba registrado`, true);
+        registrar(a.control, 'Presente');
+        aviso(`✅ ¡Asistencia registrada: <strong>${a.nombre}</strong>!`, false);
+    }, () => {}).catch(() => alert('No se pudo acceder a la cámara. Revisa los permisos del navegador.'));
+}
+function detenerEscanner() { if (html5QrCode) html5QrCode.stop().catch(() => {}); }
+window.addEventListener('pagehide', detenerEscanner);
+
+// ==========================================
+// CSV
+// ==========================================
+function csvDia() {
+    descargar(`Asistencia_${GRUPO}_${fecha}.csv`, [['No', 'Numero_Control', 'Nombre', 'Fecha', 'Estatus'],
+        ...ALUMNOS.map(a => [a.id, a.control, a.nombre, fecha, estatusDe(fecha, a.control)])]);
+}
+
+// ==========================================
+// REPORTE MENSUAL
+// ==========================================
+function csvMes() {
+    const dias = habilesDe(fecha.slice(0, 7));
+    descargar(`Reporte_${GRUPO}_${fecha.slice(0, 7)}.csv`, [['No', 'Numero_Control', 'Nombre', ...dias, 'Presentes', 'Retardos', 'Justificados', 'Faltas', '%A'],
+        ...ALUMNOS.map(a => { const rs = resumenAlumno(a.control, dias);
+            return [a.id, a.control, a.nombre, ...dias.map(d => LETRA[estatusDe(d, a.control)] || ''), rs.p, rs.r, rs.j, rs.f, rs.pct === null ? '' : rs.pct]; })]);
+}
+
+// ==========================================
+// EXPORTAR: Excel (.xlsx) · PDF (imprimir) · Imagen (PNG)
+// ==========================================
+const mesTxt = ym => new Date(ym + '-15T12:00:00').toLocaleDateString('es-MX', { month: 'long', year: 'numeric' });
+const simbolo = e => e === 'Presente' ? '✓' : (LETRA[e] || '');
+
+function hojaOficialHTML() {
+    const ym = fecha.slice(0, 7), dias = habilesDe(ym);
+    const filas = ALUMNOS.map(a => {
+        const rs = resumenAlumno(a.control, dias), cls = rs.pct === null ? '' : rs.pct >= 80 ? 'ok' : rs.pct >= 70 ? 'med' : 'mal';
+        const celdas = dias.map(d => { const e = estatusDe(d, a.control); return `<td class="${e === 'Presente' ? 'ok' : e === 'Falta' ? 'mal' : 'med'}">${simbolo(e)}</td>`; }).join('');
+        return `<tr><td>${a.id}</td><td>${a.control}</td><td class="n">${esc(a.nombre)}</td>${celdas}<td>${rs.p + rs.r}</td><td>${rs.f}</td><td>${rs.j}</td><td>${rs.p + rs.r + rs.j + rs.f}</td><td class="${cls}">${rs.pct === null ? '' : rs.pct + '%'}</td></tr>`;
+    }).join('');
+    return `<div class="of-tit">COLEGIO DE ESTUDIOS CIENTÍFICOS Y TECNOLÓGICOS DEL ESTADO DE MÉXICO<br>PLANTEL ECATEPEC II<br>LISTA DE ASISTENCIA</div>
+    <div class="of-dat">CARRERA: Programación &nbsp;·&nbsp; PERIODO: 2026-2027 &nbsp;·&nbsp; SEMESTRE: 1 &nbsp;·&nbsp; GRUPO: ${GRUPO} &nbsp;·&nbsp; TURNO: Matutino &nbsp;·&nbsp; MES: ${mesTxt(ym)}</div>
+    <table class="of"><thead><tr><th rowspan="2">No.</th><th rowspan="2">No. CONTROL</th><th rowspan="2">ALUMNO</th><th colspan="${dias.length}">ASISTENCIAS</th>
+    <th rowspan="2">Asist.</th><th rowspan="2">Faltas</th><th rowspan="2">Just.</th><th rowspan="2">Días</th><th rowspan="2">%A</th></tr>
+    <tr>${dias.map(d => `<th>${d.slice(8)}</th>`).join('')}</tr></thead><tbody>${filas}</tbody></table>
+    <div class="of-pie"><div>✓ asistió · R retardo · J justificado · F falta<br>%A = (✓ + R) ÷ (días con lista cerrada − justificados)</div><div class="of-firma">ASESOR (NOMBRE Y FIRMA)</div></div>`;
+}
+function imprimirPDF() { $('hojaImpresion').innerHTML = hojaOficialHTML(); window.print(); }   // en el diálogo: "Guardar como PDF"
+function descargarPNG() {
+    if (typeof html2canvas === 'undefined') return alert('Necesitas conexión a internet para generar la imagen.');
+    const el = $('hojaImpresion'); el.innerHTML = hojaOficialHTML();
+    Object.assign(el.style, { left: '0', zIndex: '-1' });
+    html2canvas(el, { scale: 2, backgroundColor: '#ffffff' }).then(c => {
+        const a = document.createElement('a'); a.download = `Lista_${GRUPO}_${fecha.slice(0, 7)}.png`; a.href = c.toDataURL('image/png'); a.click();
+    }).finally(() => Object.assign(el.style, { left: '', zIndex: '' }));
+}
+function descargarXLSX() {
+    if (typeof XLSX === 'undefined') return alert('Necesitas conexión a internet para generar el Excel.');
+    const ym = fecha.slice(0, 7), dias = habilesDe(ym), n = dias.length;
+    const cD = XLSX.utils.encode_col(3), cL = XLSX.utils.encode_col(2 + n);                 // primera / última columna de días
+    const [cA, cF, cJ, cR, cP] = [1, 2, 3, 4, 5].map(i => XLSX.utils.encode_col(2 + n + i));
+    const aoa = [['COLEGIO DE ESTUDIOS CIENTÍFICOS Y TECNOLÓGICOS DEL ESTADO DE MÉXICO'], ['PLANTEL ECATEPEC II'], ['LISTA DE ASISTENCIA'],
+        ['CARRERA:', '', 'Programación', '', `MES: ${mesTxt(ym)}`], [`PERIODO: 2026-2027 · SEMESTRE: 1 · GRUPO: ${GRUPO} · TURNO: Matutino`], [],
+        ['No.', 'No. CONTROL', 'ALUMNO', ...dias.map(d => d.slice(8)), 'Asist.', 'Faltas', 'Just.', 'Días reg.', '%A']];
+    ALUMNOS.forEach((a, i) => {
+        const r = 8 + i, rng = `${cD}${r}:${cL}${r}`;
+        aoa.push([a.id, a.control, a.nombre, ...dias.map(d => simbolo(estatusDe(d, a.control)) || null),
+            { t: 'n', f: `COUNTIF(${rng},"✓")+COUNTIF(${rng},"R")` }, { t: 'n', f: `COUNTIF(${rng},"F")` }, { t: 'n', f: `COUNTIF(${rng},"J")` },
+            { t: 'n', f: `COUNTA(${rng})` }, { t: 'n', f: `IF(${cR}${r}-${cJ}${r}>0,${cA}${r}/(${cR}${r}-${cJ}${r}),"")`, z: '0%' }]);
+    });
+    aoa.push([], ['', '', 'ASESOR (NOMBRE Y FIRMA): ______________________________'], ['Leyenda: ✓ asistió · R retardo · J justificado · F falta. %A = (✓ + R) ÷ (días registrados − justificados).']);
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [{ wch: 5 }, { wch: 16 }, { wch: 42 }, ...dias.map(() => ({ wch: 4 })), { wch: 7 }, { wch: 7 }, { wch: 6 }, { wch: 8 }, { wch: 7 }];
+    ws['!merges'] = [0, 1, 2].map(r => ({ s: { r, c: 0 }, e: { r, c: 2 + n + 5 } }));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Asistencia');
+    XLSX.writeFile(wb, `Lista_Asistencia_${GRUPO}_${ym}.xlsx`);
+}
+
+// ==========================================
+// PESTAÑAS Y CHECKLISTS (QR, uniforme, material, aseo)
+// ==========================================
+function cambiarSeccion(seccion, evt) {
+    document.querySelectorAll('.control-panel-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    $('panel-' + seccion).classList.add('active');
+    evt.currentTarget.classList.add('active');
+    if (seccion !== 'asistencia') detenerEscanner();   // apaga la cámara al cambiar de pestaña
+}
+function setCheck(control, campo, valor) {
+    check[control] = { ...DEF, ...check[control], [campo]: valor };
+    guardar(K.check, check); guardarDatoGrupo('check:' + control, check[control]);
+}
+function pintarQR() {   // QR generado en el propio dispositivo; solo contiene el No. de control
+    if (typeof QRCode === 'undefined') return;
+    document.querySelectorAll('[data-qr]').forEach(el => { if (el.dataset.ok) return; new QRCode(el, { text: el.dataset.qr, width: 120, height: 120 }); el.dataset.ok = '1'; });
+}
+function renderChecklists() {
+    const sel = (a, campo, opts) => {
+        const val = (check[a.control] || {})[campo] ?? DEF[campo];
+        return `<td style="text-align:center"><select class="form-control-custom" style="padding:4px;font-size:11px" onchange="setCheck('${a.control}','${campo}',this.value)">` +
+            opts.map(o => { const [v, t] = Array.isArray(o) ? o : [o, o]; return `<option value="${v}" ${v === val ? 'selected' : ''}>${t}</option>`; }).join('') + '</select></td>';
+    };
+    const nom = a => `<td><strong>${a.nombre}</strong></td>`;
+    const llenar = (id, fn) => { $(id).innerHTML = ALUMNOS.map(a => `<tr><td>${a.id}</td>${fn(a)}</tr>`).join(''); };
+    llenar('tabla-qr-body', a => {
+        return `<td><span class="badge-codigo">${a.control}</span></td>${nom(a)}<td style="text-align:center"><div class="qr-table-img" data-qr="${a.control}" role="img" aria-label="QR ${a.control}"></div></td>`;
+    });
+    llenar('tabla-uniforme-body', a => nom(a) + sel(a, 'uniforme', ['Completo', 'Incompleto', 'No porta']) + sel(a, 'credencial', ['Sí', 'No']));
+    llenar('tabla-material-body', a => nom(a) + sel(a, 'cuaderno', ['Sí', 'Incompleto', 'No']) + sel(a, 'libro', ['Sí', 'No']));
+    llenar('tabla-aseo-body', a => nom(a) + sel(a, 'aseo', [['Pendiente', 'Sin Comisión'], 'Asignado (Turno Aseo)']) + sel(a, 'cumplimientoAseo', [['No asignado', 'N/A'], 'Completado', 'Pendiente']));
+    pintarQR();
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+    migrar();
+    fecha = fechaInicial(); renderChecklists(); renderAsistencia(); scrollAActivo();   // primero la caché local
+    const repintar = () => { renderChecklists(); renderAsistencia(); };
+    if (await cargarGrupoRemoto()) repintar();     // luego la verdad compartida de Supabase
+    suscribirGrupo(repintar);                      // y cambios en vivo de otros usuarios
+});
+</script>
+</body>
+</html>
+

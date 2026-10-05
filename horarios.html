@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#d4af37">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CECYTEM 101">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Horario · Grupo 101 · CECYTEM Ecatepec II</title>
+<link rel="stylesheet" href="style.css">
+<script src="supabase.js"></script>
+<style>
+.hz-hero{border-left:4px solid var(--c,#d4af37);display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;justify-content:space-between}
+.hz-hero b{font-size:clamp(17px,4.5vw,22px);color:#fff}.hz-hero small{color:#b0c4de;display:block;margin-top:3px}
+.hz-min{font-size:13px;color:#d4af37;font-weight:700;white-space:nowrap}
+.hz-tabs{display:flex;gap:6px;margin:16px 0 12px;overflow-x:auto;padding-bottom:2px}
+.hz-tabs button,.hz-btn{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid rgba(212,175,55,.35);background:rgba(255,255,255,.04);color:#e8eef6;font:600 14px inherit;font-family:inherit;cursor:pointer;flex:1;white-space:nowrap}
+.hz-tabs button.on{background:#d4af37;color:#070b12;border-color:#d4af37}
+.hz-tabs button.hoy:not(.on){border-color:#d4af37;color:#d4af37}
+.hz-list{display:grid;gap:10px}
+.hz-item{display:grid;grid-template-columns:78px 1fr;gap:12px;background:rgba(255,255,255,.04);border-left:4px solid var(--c);border-radius:10px;padding:12px 14px}
+.hz-item.ya{opacity:.5}.hz-item.ahora{background:rgba(212,175,55,.13);box-shadow:0 0 0 1px #d4af37 inset}
+.hz-item .t{font-weight:700;color:#d4af37;font-size:14px;line-height:1.3}.hz-item .t span{display:block;color:#b0c4de;font-weight:500;font-size:12px}
+.hz-item h4{margin:0 0 4px;color:#fff;font-size:15px}.hz-item p{margin:0;color:#b0c4de;font-size:13px}
+.hz-item.receso{--c:#6b7280;padding:8px 14px;opacity:.8}.hz-item.pers{--c:#d4af37;border-style:dashed}
+.hz-vacio{text-align:center;color:#8da2b8;padding:28px 10px}
+.hz-wrap{overflow-x:auto;margin:0 -4px}.hz-tab{width:100%;min-width:640px;border-collapse:collapse}
+.hz-tab th,.hz-tab td{border:1px solid rgba(212,175,55,.18);padding:7px;font-size:12px;text-align:center;vertical-align:middle}
+.hz-tab th{background:rgba(212,175,55,.1);color:#d4af37}.hz-tab td:first-child{position:sticky;left:0;background:#0d1a27;color:#d4af37;font-weight:700;white-space:nowrap}
+.hz-tab td.hoy,.hz-tab th.hoy{background:rgba(212,175,55,.09)}.hz-tab .rc td{color:#ffd700;letter-spacing:1px;font-weight:700;background:rgba(255,255,255,.05)}
+.hz-m{display:block;padding:4px 6px;border-radius:6px;font-weight:600;border-left:3px solid var(--c);background:rgba(255,255,255,.05)}.hz-m i{display:block;font-style:normal;font-weight:400;color:#8da2b8;font-size:11px}
+.hz-doc{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)}.hz-doc:last-child{border:0}
+.hz-doc i{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}.hz-doc div{flex:1;min-width:0}.hz-doc b{display:block;color:#fff;font-size:14px}.hz-doc span{color:#8da2b8;font-size:12px}
+.hz-f{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.hz-f select,.hz-f input{min-height:44px;border-radius:8px;border:1px solid rgba(212,175,55,.3);background:rgba(0,0,0,.3);color:#fff;padding:0 10px;font-size:16px}
+.hz-top{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+@media print{.sidebar,.menu-toggle,.hz-tabs,#hzForm,.hz-noprint{display:none!important}.main-content{margin:0!important;padding:0!important}body{background:#fff!important}.card,.hz-tab td,.hz-tab th{background:#fff!important;color:#000!important}.hz-m{border-color:#000;background:#fff}}
+.ah{margin-top:16px}.hz-av{margin-top:12px}.hz-avr{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.hz-avr .hz-btn{flex:none}.hz-btn.on{background:rgba(212,175,55,.2);border-color:#d4af37;color:#d4af37}
+.hz-p{height:5px;background:rgba(255,255,255,.1);border-radius:3px;margin-top:8px;overflow:hidden}.hz-p i{display:block;height:100%;background:var(--c);transition:width 1s linear}
+.hz-tab td.pasada .hz-m{opacity:.32}.hz-tab td.ahora .hz-m{background:rgba(212,175,55,.2);box-shadow:0 0 0 2px #d4af37,0 0 14px rgba(212,175,55,.5)}
+.hz-tab tr.fila-ahora td:first-child{background:#d4af37;color:#070b12}.hz-tab tr.rc.fila-ahora td{background:rgba(212,175,55,.25)}.hz-tab th.hoy{box-shadow:inset 0 -3px #d4af37}
+</style>
+</head>
+<body>
+<div class="sidebar" id="appSidebar">
+    <div class="sidebar-brand">CECYTEM ECATEPEC II</div>
+    <div class="reloj-sidebar" id="global-reloj-fecha">Sincronizando reloj...</div>
+    <a href="dashboard.html" class="nav-btn">📖 Académico</a>
+    <a href="personal.html" class="nav-btn">👤 Personal</a>
+    <a href="jefe.html" class="nav-btn">📋 Jefe de Grupo</a>
+    <a href="grupo.html" class="nav-btn">👥 Mi Grupo</a>
+    <a href="maestros.html" class="nav-btn">👨‍🏫 Maestros</a>
+    <a href="horarios.html" class="nav-btn active">⏰ Horario</a>
+    <a href="agenda.html" class="nav-btn">🗓️ Agenda</a>
+    <a href="documentos.html" class="nav-btn">🗂️ Documentos</a>
+</div>
+<div class="main-content">
+    <button class="menu-toggle" onclick="toggleMenu()">☰ Menú</button>
+    <div class="hz-top"><div><h2 style="margin:0">Horario · Grupo 101</h2>
+    <p style="color:#b0c4de;font-size:13px;margin:4px 0 0">Programación · Turno matutino · 1.er semestre 2026-2027</p></div>
+    <button class="hz-btn hz-noprint" style="flex:none" onclick="print()">🖨️ Imprimir / PDF</button></div>
+
+    <div class="card ah" id="hzHero" style="margin-top:16px"></div>
+
+    <div class="card hz-av" id="hzAv"></div>
+
+    <div class="hz-tabs" id="hzTabs" role="tablist"></div>
+    <div class="hz-list" id="hzDia"></div>
+
+    <div class="card" style="margin-top:22px"><h3 style="color:#d4af37;margin-bottom:10px">Semana completa</h3>
+      <div class="hz-wrap"><table class="hz-tab"><thead id="hzHead"></thead><tbody id="hzSem"></tbody></table></div></div>
+
+    <div class="card" style="margin-top:20px"><h3 style="color:#d4af37;margin-bottom:6px">Docentes y materias</h3><div id="hzDocs"></div></div>
+
+    <div class="card" id="hzForm" style="margin-top:20px"><h3 style="color:#d4af37;margin-bottom:10px">Mis actividades (se muestran dentro de tu horario)</h3>
+      <div class="hz-f">
+        <select id="pers-dia" aria-label="Día"></select>
+        <select id="pers-hora" aria-label="Hora"></select>
+        <input id="pers-actividad" placeholder="Ej. Asesoría, club, examen" style="grid-column:span 2" aria-label="Actividad">
+        <button class="hz-btn" style="background:#d4af37;color:#070b12" onclick="agregarActividadPersonal()">Agregar</button>
+      </div>
+      <div id="hzPers" style="margin-top:12px"></div></div>
+</div>
+<script src="app.js"></script>
+<script src="escuela.js"></script>
+<script src="avisos.js"></script>
+<script>
+const { DIAS, DIA_NOMBRE, HORARIO, DOCENTES, aulaDe, docenteDe, colorDe, rango, hhmm, ahoraMX, bloquesDe, renderAhora } = window.ESCUELA;
+const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let diaSel = 'lunes', mostrarSemana = false;
+const idxHoy = () => { const d = ahoraMX().getDay(); return d >= 1 && d <= 5 ? DIAS[d-1] : null; };
+const personales = () => obtenerDatosSeguros('horarios_personales', []);
+
+function itemsDelDia(dia) {
+  const it = bloquesDe(dia).map(b => ({ ...b }));
+  personales().filter(p => p.dia === DIA_NOMBRE[dia]).forEach(p => { const [i,f] = rango(p.hora); it.push({ tipo:'personal', ini:i, fin:f, texto:p.actividad }); });
+  return it.sort((a,b) => a.ini - b.ini);
+}
+function renderHero() { renderAhora($('hzHero')); }
+const $ = id => document.getElementById(id);
+function renderTabs() {
+  const hoy = idxHoy();
+  $('hzTabs').innerHTML = DIAS.map(d => `<button role="tab" class="${d===diaSel?'on':''} ${d===hoy?'hoy':''}" onclick="diaSel='${d}';renderTodo()">${DIA_NOMBRE[d].slice(0,3)}</button>`).join('');
+}
+function renderDia() {
+  const hoy = idxHoy() === diaSel, now = ahoraMX(), m = now.getHours()*60 + now.getMinutes();
+  const items = itemsDelDia(diaSel);
+  if (!items.some(i => i.tipo !== 'receso')) { $('hzDia').innerHTML = '<div class="hz-vacio">Sin clases este día.</div>'; return; }
+  $('hzDia').innerHTML = items.map(i => {
+    const est = hoy ? (m >= i.fin ? 'ya' : m >= i.ini ? 'ahora' : '') : '';
+    const t = `<div class="t">${hhmm(i.ini)}<span>${hhmm(i.fin)}</span></div>`;
+    if (i.tipo === 'receso') return `<div class="hz-item receso ${est}">${t}<p style="align-self:center">Receso</p></div>`;
+    if (i.tipo === 'personal') return `<div class="hz-item pers ${est}">${t}<div><h4>${esc(i.texto)}</h4><p>Actividad personal</p></div></div>`;
+    const pr = est === 'ahora' ? `<div class="hz-p"><i style="width:${Math.min(100, (m - i.ini) / (i.fin - i.ini) * 100).toFixed(1)}%"></i></div>` : '';
+    return `<div class="hz-item ${est}" style="--c:${colorDe(i.materia)}">${t}<div><h4>${esc(i.materia)}</h4><p>${aulaDe(i.materia)} · ${esc(docenteDe(i.materia))}${est === 'ahora' ? ' · hasta las ' + hhmm(i.fin) : ''}</p>${pr}</div></div>`;
+  }).join('');
+}
+function renderSemana() {
+  const hoy = idxHoy(), n = ahoraMX(), m = n.getHours()*60 + n.getMinutes();
+  $('hzHead').innerHTML = '<tr><th>Hora</th>' + DIAS.map(d => `<th class="${d===hoy?'hoy':''}">${DIA_NOMBRE[d]}</th>`).join('') + '</tr>';
+  $('hzSem').innerHTML = HORARIO.map(r => {
+    const [i, f] = rango(r.hora), fila = hoy && m >= i && m < f ? 'fila-ahora' : '';
+    if (r.receso) return `<tr class="rc ${fila}"><td>${r.hora}</td><td colspan="5">RECESO</td></tr>`;
+    return `<tr class="${fila}"><td>${r.hora}</td>` + DIAS.map(d => {
+      const mat = r[d], est = d === hoy ? 'hoy ' + (m >= f ? 'pasada' : m >= i ? 'ahora' : '') : '';
+      return `<td class="${est}">` + (mat === '-' ? '<span style="color:#4b5b6b">—</span>' : `<span class="hz-m" style="--c:${colorDe(mat)}">${esc(mat)}<i>${aulaDe(mat)}</i></span>`) + '</td>';
+    }).join('') + '</tr>';
+  }).join('');
+  const w = document.querySelector('.hz-wrap'), t = document.querySelector('#hzHead th.hoy');
+  if (w && t && !w.dataset.s) { w.scrollLeft = t.offsetLeft - w.clientWidth/2 + t.offsetWidth/2; w.dataset.s = 1; }
+}
+function renderAvisos() {
+  const A = window.CECYTEM_AVISOS, c = A.cfg(), p = A.permiso();
+  const msg = !c.on ? 'Activa los avisos para saber cuánto falta y cuándo entras a cada materia.' :
+    p === 'granted' ? 'Recibirás notificaciones del sistema y avisos dentro de la app.' :
+    p === 'denied' ? 'Notificaciones bloqueadas en el navegador: solo verás el aviso dentro de la app. Puedes permitirlas en los ajustes del sitio.' :
+    p === 'unsupported' ? 'Este navegador no permite notificaciones del sistema: verás el aviso dentro de la app (en iPhone, instala la app en la pantalla de inicio).' : 'Falta permitir las notificaciones cuando el navegador lo pregunte.';
+  $('hzAv').innerHTML = `<div class="hz-avr"><button class="hz-btn ${c.on ? 'on' : ''}" onclick="alternarAvisos()">${c.on ? '🔔 Avisos activados' : '🔕 Activar avisos'}</button>
+    <label style="color:#b0c4de;font-size:13px">Avisar antes <select id="avAntes" onchange="CECYTEM_AVISOS.setAntes(+this.value)" style="min-height:44px;border-radius:8px;background:rgba(0,0,0,.3);color:#fff;border:1px solid rgba(212,175,55,.3);padding:0 8px;font-size:16px">${[0,5,10,15].map(x => `<option value="${x}" ${x === c.antes ? 'selected' : ''}>${x ? x + ' min' : 'solo al entrar'}</option>`).join('')}</select></label>
+    <button class="hz-btn" onclick="CECYTEM_AVISOS.probar()">Probar aviso</button></div><p style="color:#8da2b8;font-size:12px;margin:8px 0 0">${msg}</p>`;
+}
+async function alternarAvisos() { const A = window.CECYTEM_AVISOS; if (A.cfg().on) A.desactivar(); else await A.activar(); renderAvisos(); }
+function renderDocs() {
+  $('hzDocs').innerHTML = DOCENTES.map(d => `<div class="hz-doc" style="--c:${d.color}"><i></i><div><b>${esc(d.materia)}</b><span>${esc(d.nombre)}</span></div><span>${d.horas} h</span></div>`).join('');
+}
+function renderPers() {
+  const p = personales();
+  $('hzPers').innerHTML = p.length ? p.map((a,i) => `<div class="hz-doc"><div><b>${esc(a.actividad)}</b><span>${esc(a.dia)} · ${esc(a.hora)}</span></div><button class="hz-btn" style="flex:none;min-height:36px;padding:0 12px" onclick="borrarPers(${i})" aria-label="Eliminar">✕</button></div>`).join('')
+    : '<span style="color:#8da2b8;font-size:13px">Aún no agregas actividades.</span>';
+}
+function agregarActividadPersonal() {
+  const dia = $('pers-dia').value, hora = $('pers-hora').value, actividad = $('pers-actividad').value.trim();
+  if (!dia || !hora || !actividad) { alert('Elige día, hora y escribe la actividad.'); return; }
+  const p = personales(); p.push({ dia, hora, actividad });
+  localStorage.setItem('horarios_personales', JSON.stringify(p));
+  $('pers-actividad').value = ''; renderTodo();
+}
+function borrarPers(i) { const p = personales(); p.splice(i,1); localStorage.setItem('horarios_personales', JSON.stringify(p)); renderTodo(); }
+function renderTodo() { renderHero(); renderTabs(); renderDia(); renderPers(); }
+document.addEventListener('DOMContentLoaded', () => {
+  diaSel = idxHoy() || 'lunes';
+  $('pers-dia').innerHTML = '<option value="" disabled selected>Día</option>' + DIAS.map(d => `<option>${DIA_NOMBRE[d]}</option>`).join('');
+  $('pers-hora').innerHTML = '<option value="" disabled selected>Hora</option>' + HORARIO.filter(r => !r.receso).map(r => `<option>${r.hora}</option>`).join('');
+  renderSemana(); renderDocs(); renderTodo();
+  setInterval(renderHero, 1000); setInterval(() => { renderDia(); renderSemana(); }, 20000); renderAvisos();
+});
+</script>
+</body>
+</html>

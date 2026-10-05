@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#d4af37">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CECYTEM 101">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Documentos · CECYTEM Ecatepec II</title>
+<link rel="stylesheet" href="style.css">
+<script src="supabase.js"></script>
+<style>
+.dc-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.dc-b{min-height:50px;border-radius:12px;border:1px solid rgba(212,175,55,.4);background:rgba(255,255,255,.05);color:#fff;font:600 15px inherit;font-family:inherit;cursor:pointer;padding:0 14px}
+.dc-b.p{background:#d4af37;color:#070b12;border-color:#d4af37}.dc-b:disabled{opacity:.4}
+.dc-f{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:14px}
+.dc-f label{display:block;color:#b0c4de;font-size:12px;margin-bottom:4px}
+.dc-f select,.dc-f input{width:100%;min-height:46px;border-radius:8px;border:1px solid rgba(212,175,55,.3);background:rgba(0,0,0,.3);color:#fff;padding:0 10px;font-size:16px}
+.dc-pg{display:flex;gap:10px;overflow-x:auto;padding:12px 0}.dc-pg:empty{display:none}
+.dc-p{flex:none;width:96px;position:relative}.dc-p canvas,.dc-p img{width:96px;height:128px;object-fit:cover;border-radius:6px;background:#fff;display:block}
+.dc-p span{position:absolute;left:4px;top:4px;background:#070b12cc;color:#fff;font-size:11px;padding:1px 6px;border-radius:8px}
+.dc-p div{display:flex;gap:4px;margin-top:4px}.dc-p button{flex:1;min-height:34px;border-radius:6px;border:1px solid #ffffff30;background:#ffffff10;color:#fff;cursor:pointer}
+.dc-sec{margin-top:18px}.dc-sec>h3{color:#d4af37;font-size:16px;margin:0 0 2px}.dc-sec>small{color:#8da2b8}
+.dc-sub{color:#b0c4de;font-size:12px;margin:12px 0 6px;font-weight:600}
+.dc-it{display:flex;gap:12px;align-items:center;padding:10px;border-radius:10px;background:rgba(255,255,255,.04);margin-bottom:8px}
+.dc-it img{width:52px;height:68px;object-fit:cover;border-radius:5px;background:#fff;flex:none}.dc-it .ic{width:52px;height:68px;border-radius:5px;background:#7f1d1d;display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+.dc-it div.t{flex:1;min-width:0}.dc-it b{display:block;color:#fff;font-size:14px;overflow-wrap:anywhere}.dc-it small{color:#8da2b8}
+.dc-ac{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.dc-ac button{min-height:36px;padding:0 12px;border-radius:8px;border:1px solid #d4af3755;background:none;color:#e8eef6;cursor:pointer;font-size:13px}
+.dc-cam{position:fixed;inset:0;background:#000;z-index:200;display:none;flex-direction:column}.dc-cam.on{display:flex}
+.dc-cam video{flex:1;min-height:0;width:100%;object-fit:contain;background:#000}
+.dc-cam .bar{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:#070b12}
+.dc-sh{width:68px;height:68px;border-radius:50%;border:5px solid #fff;background:#d4af37;cursor:pointer}
+.dc-chips{display:flex;gap:6px;overflow-x:auto;margin:14px 0 4px}.dc-chips button{flex:none;min-height:38px;padding:0 14px;border-radius:19px;border:1px solid #d4af3755;background:none;color:#e8eef6;cursor:pointer}.dc-chips .on{background:#d4af37;color:#070b12}
+.dc-v{position:fixed;inset:0;background:#000e;z-index:210;display:none;overflow:auto;padding:16px}.dc-v.on{display:block}.dc-v img{display:block;max-width:100%;margin:0 auto 12px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="sidebar" id="appSidebar">
+    <div class="sidebar-brand">CECYTEM ECATEPEC II</div>
+    <div class="reloj-sidebar" id="global-reloj-fecha">Sincronizando reloj...</div>
+    <a href="dashboard.html" class="nav-btn">📖 Académico</a>
+    <a href="personal.html" class="nav-btn">👤 Personal</a>
+    <a href="jefe.html" class="nav-btn">📋 Jefe de Grupo</a>
+    <a href="grupo.html" class="nav-btn">👥 Mi Grupo</a>
+    <a href="maestros.html" class="nav-btn">👨‍🏫 Maestros</a>
+    <a href="horarios.html" class="nav-btn">⏰ Horario</a>
+    <a href="agenda.html" class="nav-btn">🗓️ Agenda</a>
+    <a href="documentos.html" class="nav-btn active">🗂️ Documentos</a>
+</div>
+<div class="main-content">
+    <button class="menu-toggle" onclick="toggleMenu()">☰ Menú</button>
+    <h2>Documentos</h2>
+    <p style="color:#b0c4de;font-size:13px;margin:4px 0 16px">Escanea o sube tus papeles y se ordenan solos por a quién van y de qué son. Se guardan en este dispositivo.</p>
+
+    <div class="card">
+      <h3 style="color:#d4af37;margin-bottom:12px">Nuevo documento</h3>
+      <div class="dc-bar">
+        <button class="dc-b p" onclick="abrirCamara()">📷 Escanear con cámara</button>
+        <button class="dc-b" onclick="$('fArch').click()">🖼️ Subir imagen o PDF</button>
+      </div>
+      <input type="file" id="fArch" accept="image/*,application/pdf" multiple hidden>
+      <div class="dc-pg" id="dcPaginas"></div>
+      <div class="dc-f">
+        <div><label for="dcTitulo">Título</label><input id="dcTitulo" placeholder="Ej. Tarea de álgebra"></div>
+        <div><label for="dcPara">¿A quién va?</label><select id="dcPara"></select></div>
+        <div><label for="dcAsunto">¿De qué es?</label><select id="dcAsunto"></select></div>
+        <div><label for="dcFiltro">Aspecto del escaneo</label><select id="dcFiltro"><option value="doc">Documento (blanco y negro nítido)</option><option value="gris">Escala de grises</option><option value="color">Color original</option></select></div>
+      </div>
+      <button class="dc-b p" id="dcGuardar" style="width:100%;margin-top:14px" disabled onclick="guardarDoc()">Guardar documento</button>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <h3 style="color:#d4af37">Mis documentos</h3>
+      <input id="dcBuscar" placeholder="Buscar por título, persona o asunto" style="width:100%;min-height:46px;margin-top:10px;border-radius:8px;border:1px solid rgba(212,175,55,.3);background:rgba(0,0,0,.3);color:#fff;padding:0 10px;font-size:16px">
+      <div class="dc-chips" id="dcChips"></div>
+      <div id="dcLista"></div>
+    </div>
+</div>
+
+<div class="dc-cam" id="dcCam"><video id="dcVideo" playsinline muted></video>
+  <div class="bar"><button class="dc-b" onclick="cerrarCamara()">Listo</button><button class="dc-sh" onclick="capturar()" aria-label="Tomar foto"></button><span id="dcCont" style="color:#fff;min-width:70px;text-align:right">0 hojas</span></div></div>
+<div class="dc-v" id="dcVer" onclick="this.classList.remove('on')"></div>
+
+<script src="app.js"></script>
+<script src="escuela.js"></script>
+<script src="avisos.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const { DOCENTES } = window.ESCUELA;
+const ADMIN = ['Dirección','Control escolar','Orientación / Tutoría','Jefe de grupo','Otro'];
+const TIPOS = ['Tarea o trabajo','Examen','Justificante','Permiso','Constancia','Identificación','Otro'];
+let paginas = [], stream = null, filtro = 'todos';
+
+// ---------- Base de datos local (IndexedDB) ----------
+const dbp = new Promise((ok, mal) => { const r = indexedDB.open('cecytem_docs', 1); r.onupgradeneeded = () => r.result.createObjectStore('docs', { keyPath:'id' }); r.onsuccess = () => ok(r.result); r.onerror = () => mal(r.error); });
+const tx = async (modo, f) => { const db = await dbp; return new Promise((ok, mal) => { const t = db.transaction('docs', modo), r = f(t.objectStore('docs')); t.oncomplete = () => ok(r.result); t.onerror = () => mal(t.error); }); };
+const todos = () => tx('readonly', s => s.getAll());
+const poner = d => tx('readwrite', s => s.put(d));
+const quitar = id => tx('readwrite', s => s.delete(id));
+
+// ---------- Escaneo ----------
+async function abrirCamara() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return alert('Este navegador no permite usar la cámara aquí. Usa "Subir imagen o PDF" o abre la app desde https.');
+  try { stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:'environment' }, width:{ ideal:1920 } }, audio:false }); }
+  catch (e) { return alert('No se pudo abrir la cámara. Revisa el permiso del navegador.'); }
+  $('dcVideo').srcObject = stream; await $('dcVideo').play(); $('dcCam').classList.add('on'); $('dcCont').textContent = paginas.length + ' hojas';
+}
+function cerrarCamara() { if (stream) stream.getTracks().forEach(t => t.stop()); stream = null; $('dcCam').classList.remove('on'); }
+function capturar() {
+  const v = $('dcVideo'); if (!v.videoWidth) return;
+  const c = document.createElement('canvas'); c.width = v.videoWidth; c.height = v.videoHeight; c.getContext('2d').drawImage(v, 0, 0);
+  c.toBlob(b => { paginas.push({ blob:b, rot:0 }); $('dcCont').textContent = paginas.length + ' hojas'; if (navigator.vibrate) navigator.vibrate(30); renderPaginas(); }, 'image/jpeg', 0.92);
+}
+$('fArch').addEventListener('change', e => {
+  [...e.target.files].forEach(f => f.type === 'application/pdf' ? paginas.push({ pdf:f }) : paginas.push({ blob:f, rot:0 }));
+  e.target.value = ''; if (!$('dcTitulo').value && paginas[0]) $('dcTitulo').value = (paginas[0].pdf || paginas[0].blob).name?.replace(/\.[^.]+$/, '') || ''; renderPaginas();
+});
+// Dibuja una hoja: gira, reduce a 1700 px y aplica el aspecto elegido
+async function procesar(p, modo, max = 1700) {
+  const bm = await createImageBitmap(p.blob), r = ((p.rot % 360) + 360) % 360, giro = r === 90 || r === 270;
+  const k = Math.min(1, max / Math.max(bm.width, bm.height)), w = Math.round(bm.width * k), h = Math.round(bm.height * k);
+  const c = document.createElement('canvas'); c.width = giro ? h : w; c.height = giro ? w : h;
+  const x = c.getContext('2d'); x.translate(c.width/2, c.height/2); x.rotate(r * Math.PI / 180); x.drawImage(bm, -w/2, -h/2, w, h);
+  if (modo !== 'color') {
+    const im = x.getImageData(0, 0, c.width, c.height), d = im.data, hist = new Uint32Array(256);
+    for (let i = 0; i < d.length; i += 4) { const g = (d[i]*.299 + d[i+1]*.587 + d[i+2]*.114) | 0; d[i] = d[i+1] = d[i+2] = g; hist[g]++; }
+    const tot = d.length / 4; let a = 0, lo = 0, hi = 255; while (lo < 255 && (a += hist[lo]) < tot*.02) lo++; a = 0; while (hi > 0 && (a += hist[hi]) < tot*.12) hi--;
+    if (hi - lo < 30) { lo = 0; hi = 255; }
+    for (let i = 0; i < d.length; i += 4) { let v = (d[i] - lo) / (hi - lo); v = v < 0 ? 0 : v > 1 ? 1 : v; if (modo === 'doc') v = v > .8 ? 1 : v * v * (3 - 2 * v) * 1.05; d[i] = d[i+1] = d[i+2] = Math.min(255, v * 255); }
+    x.putImageData(im, 0, 0);
+  }
+  return c;
+}
+async function renderPaginas() {
+  const modo = $('dcFiltro').value, box = $('dcPaginas'); box.innerHTML = '';
+  for (let i = 0; i < paginas.length; i++) {
+    const p = paginas[i], el = document.createElement('div'); el.className = 'dc-p';
+    if (p.pdf) el.innerHTML = `<div class="dc-it" style="margin:0;padding:0"><div class="ic" style="width:96px;height:128px">PDF</div></div>`;
+    else { const c = await procesar(p, modo, 300), im = new Image(); im.src = c.toDataURL('image/jpeg', .7); el.appendChild(im); }
+    el.insertAdjacentHTML('beforeend', `<span>${i+1}</span><div>${p.pdf ? '' : `<button onclick="girar(${i})" aria-label="Girar">↻</button>`}<button onclick="borrarPag(${i})" aria-label="Quitar">✕</button></div>`);
+    box.appendChild(el);
+  }
+  $('dcGuardar').disabled = !paginas.length;
+}
+const girar = i => { paginas[i].rot = (paginas[i].rot + 90) % 360; renderPaginas(); };
+const borrarPag = i => { paginas.splice(i, 1); renderPaginas(); };
+$('dcFiltro').addEventListener('change', renderPaginas);
+
+// ---------- PDF sin librerías: cada hoja es un JPEG dentro de una página A4 ----------
+async function hacerPDF(blobs) {
+  const enc = new TextEncoder(), partes = [], offs = []; let len = 0;
+  const add = x => { const u = typeof x === 'string' ? enc.encode(x) : x; partes.push(u); len += u.length; };
+  const obj = (n, f) => { offs[n] = len; add(`${n} 0 obj\n`); f(); add('\nendobj\n'); };
+  const imgs = []; for (const b of blobs) { const bm = await createImageBitmap(b); imgs.push({ w:bm.width, h:bm.height, u:new Uint8Array(await b.arrayBuffer()) }); }
+  const n = imgs.length, kids = imgs.map((_, i) => `${3 + i*3} 0 R`).join(' ');
+  add('%PDF-1.4\n');
+  obj(1, () => add('<< /Type /Catalog /Pages 2 0 R >>'));
+  obj(2, () => add(`<< /Type /Pages /Count ${n} /Kids [${kids}] >>`));
+  imgs.forEach((im, i) => {
+    const pw = im.w > im.h ? 842 : 595, ph = im.w > im.h ? 595 : 842, s = Math.min((pw - 20) / im.w, (ph - 20) / im.h), w = im.w * s, h = im.h * s, x = (pw - w) / 2, y = (ph - h) / 2, p = 3 + i*3;
+    obj(p, () => add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pw} ${ph}] /Resources << /XObject << /I ${p+2} 0 R >> >> /Contents ${p+1} 0 R >>`));
+    const cs = `q ${w.toFixed(2)} 0 0 ${h.toFixed(2)} ${x.toFixed(2)} ${y.toFixed(2)} cm /I Do Q`;
+    obj(p+1, () => add(`<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`));
+    obj(p+2, () => { add(`<< /Type /XObject /Subtype /Image /Width ${im.w} /Height ${im.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${im.u.length} >>\nstream\n`); add(im.u); add('\nendstream'); });
+  });
+  const total = 3 + n*3, xr = len;
+  add(`xref\n0 ${total}\n0000000000 65535 f \n` + offs.slice(1, total).map(o => String(o).padStart(10, '0') + ' 00000 n \n').join(''));
+  add(`trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF`);
+  return new Blob(partes, { type:'application/pdf' });
+}
+
+// ---------- Guardar y organizar ----------
+function llenarSelects() {
+  $('dcPara').innerHTML = '<optgroup label="Docentes">' + DOCENTES.map(d => `<option value="${esc(d.nombre)}" data-m="${esc(d.materia)}">${esc(d.nombre)} · ${esc(d.materia.split(',')[0].split(' I')[0])}</option>`).join('') + '</optgroup><optgroup label="Escuela">' + ADMIN.map(a => `<option>${a}</option>`).join('') + '</optgroup>';
+  $('dcAsunto').innerHTML = '<optgroup label="Materia">' + DOCENTES.map(d => `<option>${esc(d.materia)}</option>`).join('') + '</optgroup><optgroup label="Tipo de trámite">' + TIPOS.map(t => `<option>${t}</option>`).join('') + '</optgroup>';
+  const sinc = () => { const m = $('dcPara').selectedOptions[0].dataset.m; if (m) $('dcAsunto').value = m; };
+  $('dcPara').addEventListener('change', sinc); sinc();
+}
+async function guardarDoc() {
+  if (!paginas.length) return; $('dcGuardar').disabled = true;
+  const modo = $('dcFiltro').value, base = { titulo:$('dcTitulo').value.trim() || 'Documento sin título', para:$('dcPara').value, asunto:$('dcAsunto').value, fecha:Date.now() };
+  const imgs = paginas.filter(p => p.blob), pdfs = paginas.filter(p => p.pdf);
+  try {
+    if (imgs.length) {
+      const bl = []; for (const p of imgs) { const c = await procesar(p, modo); bl.push(await new Promise(r => c.toBlob(r, 'image/jpeg', .82))); }
+      const mini = await procesar(imgs[0], modo, 200);
+      await poner({ ...base, id:crypto.randomUUID(), tipo:'pdf', hojas:bl.length, archivo:await hacerPDF(bl), preview:await new Promise(r => mini.toBlob(r, 'image/jpeg', .6)), imagenes:bl });
+    }
+    for (const p of pdfs) await poner({ ...base, id:crypto.randomUUID(), titulo:pdfs.length > 1 || imgs.length ? p.pdf.name.replace(/\.pdf$/i, '') : base.titulo, tipo:'pdf', hojas:null, archivo:p.pdf });
+  } catch (e) { alert('No se pudo guardar: ' + e.message); $('dcGuardar').disabled = false; return; }
+  paginas = []; $('dcTitulo').value = ''; renderPaginas(); renderLista();
+}
+
+// ---------- Biblioteca: primero A QUIÉN va, luego DE QUÉ es ----------
+const URLs = []; const url = b => { const u = URL.createObjectURL(b); URLs.push(u); return u; };
+async function renderLista() {
+  URLs.splice(0).forEach(URL.revokeObjectURL);
+  const docs = await todos(), q = $('dcBuscar').value.toLowerCase().trim();
+  const orden = [...DOCENTES.map(d => d.nombre), ...ADMIN], paras = [...new Set(docs.map(d => d.para))].sort((a, b) => (orden.indexOf(a) + 1 || 99) - (orden.indexOf(b) + 1 || 99));
+  $('dcChips').innerHTML = ['todos', ...paras].map(p => `<button class="${p === filtro ? 'on' : ''}" data-p="${esc(p)}">${p === 'todos' ? 'Todos (' + docs.length + ')' : esc(p.split(' ').slice(0, 2).join(' ')) + ' (' + docs.filter(d => d.para === p).length + ')'}</button>`).join('');
+  $('dcChips').querySelectorAll('button').forEach(b => b.onclick = () => { filtro = b.dataset.p; renderLista(); });
+  const vis = docs.filter(d => (filtro === 'todos' || d.para === filtro) && (!q || (d.titulo + d.para + d.asunto).toLowerCase().includes(q)));
+  if (!vis.length) { $('dcLista').innerHTML = `<p style="color:#8da2b8;text-align:center;padding:26px 8px">${docs.length ? 'Nada coincide con tu búsqueda.' : 'Todavía no hay documentos. Escanea el primero arriba.'}</p>`; return; }
+  $('dcLista').innerHTML = paras.filter(p => vis.some(d => d.para === p)).map(p => {
+    const mios = vis.filter(d => d.para === p), asuntos = [...new Set(mios.map(d => d.asunto))];
+    return `<section class="dc-sec"><h3>${esc(p)}</h3><small>${mios.length} documento${mios.length > 1 ? 's' : ''}</small>` + asuntos.map(a => `<div class="dc-sub">${esc(a)}</div>` + mios.filter(d => d.asunto === a).sort((x, y) => y.fecha - x.fecha).map(d =>
+      `<div class="dc-it">${d.preview ? `<img src="${url(d.preview)}" alt="">` : '<div class="ic">PDF</div>'}<div class="t"><b>${esc(d.titulo)}</b><small>${new Date(d.fecha).toLocaleDateString('es-MX', { day:'numeric', month:'short', year:'numeric' })}${d.hojas ? ' · ' + d.hojas + ' hoja' + (d.hojas > 1 ? 's' : '') : ''}</small>
+      <div class="dc-ac"><button onclick="ver('${d.id}')">Ver</button><button onclick="bajar('${d.id}')">Descargar</button><button onclick="compartir('${d.id}')">Compartir</button><button onclick="borrar('${d.id}')">Eliminar</button></div></div></div>`).join('')).join('') + '</section>';
+  }).join('');
+}
+const uno = async id => (await todos()).find(d => d.id === id);
+const nombreArch = d => d.titulo.replace(/[^\w\- áéíóúñÁÉÍÓÚÑ]/g, '').trim().replace(/\s+/g, '_') + '.pdf';
+async function ver(id) { const d = await uno(id), v = $('dcVer'); if (d.imagenes) { v.innerHTML = d.imagenes.map(b => `<img src="${url(b)}">`).join(''); v.classList.add('on'); } else window.open(url(d.archivo), '_blank'); }
+async function bajar(id) { const d = await uno(id), a = document.createElement('a'); a.href = url(d.archivo); a.download = nombreArch(d); document.body.appendChild(a); a.click(); a.remove(); }
+async function compartir(id) {
+  const d = await uno(id), f = new File([d.archivo], nombreArch(d), { type:'application/pdf' });
+  if (navigator.canShare && navigator.canShare({ files:[f] })) { try { await navigator.share({ files:[f], title:d.titulo, text:'Para: ' + d.para + ' · ' + d.asunto }); } catch (_) {} }
+  else bajar(id);
+}
+async function borrar(id) { if (confirm('¿Eliminar este documento?')) { await quitar(id); renderLista(); } }
+$('dcBuscar').addEventListener('input', renderLista);
+llenarSelects(); renderLista();
+</script>
+</body>
+</html>

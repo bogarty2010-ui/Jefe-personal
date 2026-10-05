@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="theme-color" content="#d4af37">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CECYTEM 101">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Académico - Dashboard CECYTEM Ecatepec II</title>
+    <link rel="stylesheet" href="style.css">
+<script src="supabase.js"></script>
+<style>
+.main-content h2{font-size:clamp(21px,5.2vw,30px);line-height:1.2;margin-bottom:6px}
+.dash-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,500px),1fr));gap:16px;align-items:start}
+.dash-cols>.card{margin:0;min-width:0}.dash-cols>.full{grid-column:1/-1}
+#dashAhora{margin-bottom:16px}
+.academic-table th,.academic-table td{white-space:normal;vertical-align:middle}
+.academic-table td:first-child{min-width:130px}
+#califMatWrap input[data-p]{min-width:0;width:100%}
+#califMatWrap input[data-k="nombre"]{min-width:0}
+.form-row{display:flex;flex-wrap:wrap;gap:10px}.form-row>*{min-width:0}
+</style>
+</head>
+<body>
+    <div class="sidebar" id="appSidebar">
+        <div class="sidebar-brand">CECYTEM ECATEPEC II</div>
+        <div class="reloj-sidebar" id="global-reloj-fecha">Sincronizando reloj...</div>
+        <a href="dashboard.html" class="nav-btn active">📚 Académico</a>
+        <a href="personal.html" class="nav-btn">👤 Personal</a>
+        <a href="jefe.html" class="nav-btn">📋 Jefe de Grupo</a>
+    <a href="grupo.html" class="nav-btn">👥 Mi Grupo</a>
+    <a href="maestros.html" class="nav-btn">👨‍🏫 Maestros</a>
+        <a href="horarios.html" class="nav-btn">⏰ Horario</a>
+        <a href="agenda.html" class="nav-btn">🗓️ Agenda</a>
+        <a href="documentos.html" class="nav-btn">🗂️ Documentos</a>
+    </div>
+
+    <div class="main-content">
+        <button class="menu-toggle" onclick="toggleMenu()">☰ Menú</button>
+
+        <h2>Dashboard Académico - Grupo 101 Programación</h2>
+        <p style="color:#eab308;font-weight:700;font-size:12px">Cuenta: <span data-usuario-nombre>Bogart Yael Palapa Hernández</span> · Rol: <span data-usuario-rol>ADMIN</span></p>
+        <p style="color: #b0c4de; font-size: 13px; margin-bottom: 20px;">Control de asignaturas, sellos y tareas con filtro estricto a 48 horas.</p>
+
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <div style="color: #b0c4de; font-size: 13px;">Materias Registradas</div>
+                <div class="stat-value" id="total-materias">0</div>
+            </div>
+            <div class="stat-card">
+                <div style="color: #b0c4de; font-size: 13px;">Tareas Urgentes (Próximos 2 días)</div>
+                <div class="stat-value" id="total-tareas">0</div>
+            </div>
+        </div>
+
+        <div class="card ah" id="dashAhora"></div>
+
+        <div class="dash-cols">
+        <div class="card">
+            <h3 style="color: #d4af37; margin-bottom: 12px;">Gestión de Asignaturas y Control de Sellos</h3>
+            <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 6px; border: 1px dashed rgba(212,175,55,0.3); margin-bottom: 15px;">
+                <input type="hidden" id="edit-index" value="-1">
+                <div class="form-row">
+                    <input type="text" id="acad-materia" class="form-control-custom" placeholder="Nombre de la Materia" style="flex: 2;">
+                    <input type="text" id="acad-docente" class="form-control-custom" placeholder="Profesor / Docente" style="flex: 2;">
+                    <select id="acad-sellos" class="form-control-custom" style="flex: 1;">
+                        <option value="Sin Sellos">Sin Sellos</option>
+                        <option value="Sello 1 Obtenido">Sello 1 Obtenido</option>
+                        <option value="Sellos Completos (1 y 2)">Sellos Completos</option>
+                        <option value="En Proceso">En Proceso</option>
+                        <option value="Pendiente">Pendiente</option>
+                    </select>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" id="btn-cancelar-edit" onclick="limpiarFormularioAcad()" style="display: none; background: #6b7280; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Cancelar</button>
+                    <button type="button" class="btn-action-custom" onclick="guardarMateriaAcad()">Guardar Materia</button>
+                </div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="academic-table">
+                    <thead>
+                        <tr>
+                            <th>Materia</th>
+                            <th>Docente</th>
+                            <th>Control de Sellos</th>
+                            <th style="text-align: center;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-academica">
+                        <tr><td colspan="4" style="text-align: center; color: #6b7280;">Cargando materias...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="color: #d4af37; margin-bottom: 12px;">Tareas y Proyectos (Urgentes: 1 a 2 días para entrega)</h3>
+            <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 6px; border: 1px dashed rgba(212,175,55,0.3); margin-bottom: 15px;">
+                <div class="form-row">
+                    <input type="text" id="tarea-titulo" class="form-control-custom" placeholder="Título de la tarea o proyecto..." style="flex: 2;">
+                    <select id="tarea-materia" class="form-control-custom" style="flex: 2;">
+                        <option value="" disabled selected>Seleccionar materia asociada...</option>
+                    </select>
+                    <input type="date" id="tarea-fecha" class="form-control-custom" style="flex: 1;">
+                    <button type="button" class="btn-action-custom" onclick="agregarTareaAcad()">Añadir Tarea</button>
+                </div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="academic-table">
+                    <thead>
+                        <tr>
+                            <th>Tarea / Proyecto</th>
+                            <th>Materia Asociada</th>
+                            <th>Fecha Límite</th>
+                            <th style="text-align: center;">Eliminar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-tareas">
+                        <tr><td colspan="4" style="text-align: center; color: #6b7280;">No hay tareas urgentes.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+<div class="card">
+        <h3 style="color:#d4af37;margin-bottom:12px;">Materias con esquema de evaluación</h3>
+        <p style="color:#b0c4de;font-size:12px;margin-bottom:12px;">Define el peso Formativo/Informativo por parcial de cada UAC. Es independiente del control de sellos de arriba.</p>
+        <div id="califMatWrap"></div>
+        <button type="button" class="btn-action-custom" onclick="agregarMateriaCalif()" style="margin-top:10px;">+ Agregar materia</button>
+    </div>
+
+    <div class="card full">
+        <h3 style="color:#d4af37;margin-bottom:12px;">Actividades y evaluaciones</h3>
+        <div style="overflow-x:auto;">
+        <table class="academic-table">
+            <thead><tr><th>Actividad</th><th>Materia</th><th>Parcial</th><th>Categoría</th><th>Calif.</th><th>Pond. %</th><th style="text-align:center;">Acciones</th></tr></thead>
+            <tbody id="califActWrap"></tbody>
+        </table>
+        </div>
+        <button type="button" class="btn-action-custom" onclick="agregarActividadCalif()" style="margin-top:10px;">+ Agregar actividad</button>
+    </div>
+
+    <div class="card">
+        <h3 style="color:#d4af37;margin-bottom:12px;">Promedio ponderado en tiempo real</h3>
+        <div id="califResumen"></div>
+    </div>
+
+    <div class="card">
+        <h3 style="color:#d4af37;margin-bottom:12px;">Proyector de nota mínima requerida (Parcial 3)</h3>
+        <div class="form-row">
+            <div style="flex:1;min-width:120px;"><label style="font-size:11px;color:#b0c4de;display:block;margin-bottom:4px;">Promedio P1</label><input id="pj1" type="number" step="0.1" value="8.2" class="form-control-custom"></div>
+            <div style="flex:1;min-width:120px;"><label style="font-size:11px;color:#b0c4de;display:block;margin-bottom:4px;">Promedio P2</label><input id="pj2" type="number" step="0.1" value="8.6" class="form-control-custom"></div>
+            <div style="flex:1;min-width:120px;"><label style="font-size:11px;color:#b0c4de;display:block;margin-bottom:4px;">Meta deseada</label><input id="pjMeta" type="number" step="0.1" value="8.5" class="form-control-custom"></div>
+        </div>
+        <div id="pjResult" style="font-size:14px;padding:10px 14px;background:rgba(255,255,255,0.03);border-left:3px solid #d4af37;border-radius:6px;"></div>
+    </div>
+
+    <div class="card">
+        <h3 style="color:#d4af37;margin-bottom:12px;">Simulador de escenarios (sandbox — no altera tus datos guardados)</h3>
+        <div id="simWrap"></div>
+    </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+<script src="escuela.js"></script>
+<script src="avisos.js"></script>
+<script>document.addEventListener("DOMContentLoaded",()=>{const r=()=>ESCUELA.renderAhora(document.getElementById("dashAhora"));r();setInterval(r,1000);});</script>
+    <script>
+        const materiasBase = [
+            { materia: "Pensamiento Matemático I", docente: "Joel Álvarez López", sellos: "Pendiente" },
+            { materia: "Inglés I", docente: "Araceli Bautista Aragón", sellos: "Pendiente" },
+            { materia: "Ciencias Naturales, Exp. y Tec. I", docente: "Said Karam Figueroa", sellos: "Pendiente" },
+            { materia: "Cultura Digital I", docente: "Carmen Ibeth Martínez Aragón", sellos: "Pendiente" },
+            { materia: "Pensamiento Filosófico y Humanidades I", docente: "Juan Alejandro Cruz Velasco", sellos: "Pendiente" },
+            { materia: "Lengua y Comunicación I", docente: "Rosalía Téllez Sánchez", sellos: "Pendiente" },
+            { materia: "Ciencias Sociales I", docente: "Ángel Ricardo Cruz Velasco", sellos: "Pendiente" },
+            { materia: "Actividades Artísticas y Culturales", docente: "Mario de Jesús Herrera Tarango", sellos: "Pendiente" },
+            { materia: "Orientación Educativa", docente: "Erika Xichetl Gutiérrez Trejo", sellos: "Pendiente" }
+        ];
+
+        function obtenerColorMateria(nombreMateria) {
+            const colores = {
+                "Pensamiento Matemático I": { bg: "rgba(59, 130, 246, 0.2)", text: "#60a5fa" },
+                "Inglés I": { bg: "rgba(168, 85, 247, 0.2)", text: "#c084fc" },
+                "Ciencias Naturales, Exp. y Tec. I": { bg: "rgba(16, 185, 129, 0.2)", text: "#34d399" },
+                "Cultura Digital I": { bg: "rgba(236, 72, 153, 0.2)", text: "#f472b6" },
+                "Pensamiento Filosófico y Humanidades I": { bg: "rgba(245, 158, 11, 0.2)", text: "#fbbf24" },
+                "Lengua y Comunicación I": { bg: "rgba(239, 68, 68, 0.2)", text: "#f87171" },
+                "Ciencias Sociales I": { bg: "rgba(14, 165, 233, 0.2)", text: "#38bdf8" },
+                "Actividades Artísticas y Culturales": { bg: "rgba(20, 184, 166, 0.2)", text: "#2dd4bf" },
+                "Orientación Educativa": { bg: "rgba(139, 92, 246, 0.2)", text: "#a78bfa" }
+            };
+            return colores[nombreMateria] || { bg: "rgba(212, 175, 55, 0.15)", text: "#d4af37" };
+        }
+
+        function renderizarTodo() {
+            let materias = obtenerDatosSeguros('dashboard_materias_sellos', []);
+            if (materias.length === 0) {
+                materias = materiasBase;
+                localStorage.setItem('dashboard_materias_sellos', JSON.stringify(materias)); if (typeof guardarDatoRemoto==='function') guardarDatoRemoto('dashboard_materias_sellos', materias);
+            }
+
+            const tbodyMat = document.getElementById('tabla-academica');
+            const selectMat = document.getElementById('tarea-materia');
+            document.getElementById('total-materias').innerText = materias.length;
+
+            tbodyMat.innerHTML = '';
+            selectMat.innerHTML = '<option value="" disabled selected>Seleccionar materia asociada...</option>';
+
+            materias.forEach((item, index) => {
+                let estiloMat = obtenerColorMateria(item.materia);
+                let colorSello = '#b0c4de';
+                if (item.sellos.includes('Completos') || item.sellos.includes('Obtenido')) colorSello = '#4ade80';
+                else if (item.sellos.includes('Proceso')) colorSello = '#facc15';
+                else if (item.sellos.includes('Pendiente')) colorSello = '#ff6b6b';
+
+                tbodyMat.innerHTML += `
+                    <tr>
+                        <td><span class="badge-materia" style="background: ${estiloMat.bg}; color: ${estiloMat.text};">${item.materia}</span></td>
+                        <td>${item.docente}</td>
+                        <td><span style="color: ${colorSello}; font-weight: bold;">${item.sellos}</span></td>
+                        <td style="text-align: center;">
+                            <button class="btn-icon" onclick="cargarEdicionMateria(${index})" title="Editar">✏️</button>
+                            <button class="btn-icon" onclick="eliminarMateria(${index})" title="Eliminar">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+                selectMat.innerHTML += `<option value="${item.materia}">${item.materia}</option>`;
+            });
+
+            let tareas = obtenerDatosSeguros('dashboard_tareas', []);
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+
+            const urgentes = [];
+            tareas.forEach((t, origIdx) => {
+                if(!t.fecha) return;
+                const fLimite = new Date(t.fecha + 'T00:00:00');
+                const diffDias = (fLimite - hoy) / (1000 * 60 * 60 * 24);
+                if (diffDias >= 0 && diffDias <= 2) {
+                    urgentes.push({ ...t, realIndex: origIdx });
+                }
+            });
+
+            const tbodyTar = document.getElementById('tabla-tareas');
+            document.getElementById('total-tareas').innerText = urgentes.length;
+
+            if (urgentes.length === 0) {
+                tbodyTar.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #6b7280;">No hay tareas urgentes para los próximos 2 días.</td></tr>';
+            } else {
+                tbodyTar.innerHTML = '';
+                urgentes.forEach(t => {
+                    let estiloTar = obtenerColorMateria(t.materia);
+                    tbodyTar.innerHTML += `
+                        <tr>
+                            <td><strong>${t.titulo}</strong></td>
+                            <td><span class="badge-materia" style="background: ${estiloTar.bg}; color: ${estiloTar.text};">${t.materia}</span></td>
+                            <td><span style="color: #ff6b6b; font-weight: bold;">${t.fecha}</span></td>
+                            <td style="text-align: center;">
+                                <button class="btn-icon" onclick="eliminarTarea(${t.realIndex})" title="Eliminar">🗑️</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function guardarMateriaAcad() {
+            const materia = document.getElementById('acad-materia').value.trim();
+            const docente = document.getElementById('acad-docente').value.trim();
+            const sellos = document.getElementById('acad-sellos').value;
+            const editIndex = parseInt(document.getElementById('edit-index').value);
+
+            if (!materia || !docente) {
+                alert('Ingresa el nombre de la materia y el docente.');
+                return;
+            }
+
+            let materias = obtenerDatosSeguros('dashboard_materias_sellos', materiasBase);
+            if (editIndex === -1) {
+                materias.push({ materia, docente, sellos });
+            } else {
+                materias[editIndex] = { materia, docente, sellos };
+            }
+
+            localStorage.setItem('dashboard_materias_sellos', JSON.stringify(materias)); if (typeof guardarDatoRemoto==='function') guardarDatoRemoto('dashboard_materias_sellos', materias);
+            limpiarFormularioAcad();
+            renderizarTodo();
+        }
+
+        function cargarEdicionMateria(index) {
+            let materias = obtenerDatosSeguros('dashboard_materias_sellos', materiasBase);
+            let item = materias[index];
+            if(!item) return;
+
+            document.getElementById('acad-materia').value = item.materia;
+            document.getElementById('acad-docente').value = item.docente;
+            document.getElementById('acad-sellos').value = item.sellos;
+            document.getElementById('edit-index').value = index;
+            document.getElementById('btn-cancelar-edit').style.display = 'inline-block';
+        }
+
+        function limpiarFormularioAcad() {
+            document.getElementById('acad-materia').value = '';
+            document.getElementById('acad-docente').value = '';
+            document.getElementById('acad-sellos').value = 'Sin Sellos';
+            document.getElementById('edit-index').value = '-1';
+            document.getElementById('btn-cancelar-edit').style.display = 'none';
+        }
+
+        function eliminarMateria(index) {
+            let materias = obtenerDatosSeguros('dashboard_materias_sellos', materiasBase);
+            if (confirm('¿Eliminar esta materia?')) {
+                materias.splice(index, 1);
+                localStorage.setItem('dashboard_materias_sellos', JSON.stringify(materias)); if (typeof guardarDatoRemoto==='function') guardarDatoRemoto('dashboard_materias_sellos', materias);
+                renderizarTodo();
+            }
+        }
+
+        function agregarTareaAcad() {
+            const titulo = document.getElementById('tarea-titulo').value.trim();
+            const materia = document.getElementById('tarea-materia').value;
+            const fecha = document.getElementById('tarea-fecha').value;
+
+            if (!titulo || !materia || !fecha) {
+                alert('Completa todos los campos de la tarea.');
+                return;
+            }
+
+            let tareas = obtenerDatosSeguros('dashboard_tareas', []);
+            tareas.push({ titulo, materia, fecha });
+            localStorage.setItem('dashboard_tareas', JSON.stringify(tareas)); if (typeof guardarDatoRemoto==='function') guardarDatoRemoto('dashboard_tareas', tareas);
+
+            document.getElementById('tarea-titulo').value = '';
+            document.getElementById('tarea-materia').value = '';
+            document.getElementById('tarea-fecha').value = '';
+            renderizarTodo();
+        }
+
+        function eliminarTarea(index) {
+            let tareas = obtenerDatosSeguros('dashboard_tareas', []);
+            if (confirm('¿Eliminar esta tarea?')) {
+                tareas.splice(index, 1);
+                localStorage.setItem('dashboard_tareas', JSON.stringify(tareas)); if (typeof guardarDatoRemoto==='function') guardarDatoRemoto('dashboard_tareas', tareas);
+                renderizarTodo();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            iniciarReloj();
+            renderizarTodo();
+        });
+    </script>
+
+    <script>
+    // =========================================================
+    // MOTOR DE CÁLCULO: materias con esquema + actividades
+    // (independiente del control de sellos ya existente arriba)
+    // =========================================================
+    const KEY_CALIF = 'cecytem_calif_materias';
+    const KEY_ACT = 'cecytem_calif_actividades';
+    const califDefaultMaterias = [{id:'uac-1', nombre:'Pensamiento Matemático I', esquema:{p1:{form:70,inf:30},p2:{form:70,inf:30},p3:{form:70,inf:30}}}];
+    const califDefaultAct = [{id:'act-1', materiaId:'uac-1', parcial:1, categoria:'Hacer', nombre:'Problemario de Álgebra', calificacion:9.5, ponderacion:20}];
+    let califMaterias = obtenerDatosSeguros(KEY_CALIF, califDefaultMaterias);
+    let califAct = obtenerDatosSeguros(KEY_ACT, califDefaultAct);
+    function saveCalif(){ localStorage.setItem(KEY_CALIF, JSON.stringify(califMaterias)); if (typeof guardarDatoRemoto==='function') guardarDatoRemoto(KEY_CALIF, califMaterias); }
+    function saveAct(){ localStorage.setItem(KEY_ACT, JSON.stringify(califAct)); if (typeof guardarDatoRemoto==='function') guardarDatoRemoto(KEY_ACT, califAct); }
+
+    function matOptionsCalif(sel){ return califMaterias.map(m=>`<option value="${m.id}" ${m.id===sel?'selected':''}>${m.nombre}</option>`).join(''); }
+
+    function renderCalifMaterias(){
+        const wrap = document.getElementById('califMatWrap'); wrap.innerHTML='';
+        califMaterias.forEach((m,i)=>{
+            const el = document.createElement('div');
+            el.style.cssText='background:rgba(255,255,255,0.02);border:1px solid rgba(212,175,55,0.2);border-radius:8px;padding:12px;margin-bottom:10px;';
+            el.innerHTML = `
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                    <input data-i="${i}" data-k="nombre" value="${m.nombre}" style="background:none;border:none;color:#fff;font-weight:bold;font-size:13px;width:70%;">
+                    <button type="button" class="btn-icon" data-delmat="${i}" title="Eliminar">🗑️</button>
+                </div>
+                <div style="display:grid;grid-template-columns:50px repeat(2,1fr);gap:6px;font-size:11px;">
+                    <span></span><span style="color:#b0c4de;">Formativo %</span><span style="color:#b0c4de;">Informativo %</span>
+                    ${['p1','p2','p3'].map(p=>`<span style="color:#d4af37;">${p.toUpperCase()}</span>
+                        <input type="number" class="form-control-custom" style="padding:5px;" data-i="${i}" data-p="${p}" data-f="form" value="${m.esquema[p].form}">
+                        <input type="number" class="form-control-custom" style="padding:5px;" data-i="${i}" data-p="${p}" data-f="inf" value="${m.esquema[p].inf}">`).join('')}
+                </div>`;
+            wrap.appendChild(el);
+        });
+    }
+    document.getElementById('califMatWrap').addEventListener('input', e=>{
+        const i=e.target.dataset.i; if(i===undefined) return;
+        const m = califMaterias[i];
+        if(e.target.dataset.p){ m.esquema[e.target.dataset.p][e.target.dataset.f]=Number(e.target.value); }
+        else if(e.target.dataset.k){ m[e.target.dataset.k]=e.target.value; }
+        saveCalif(); if(e.target.dataset.k==='nombre'){ renderCalifActividades(); }
+        renderResumen();
+    });
+    document.getElementById('califMatWrap').addEventListener('click', e=>{
+        if(e.target.dataset.delmat!==undefined){ califMaterias.splice(e.target.dataset.delmat,1); saveCalif(); renderCalifMaterias(); renderCalifActividades(); renderResumen(); }
+    });
+    function agregarMateriaCalif(){
+        califMaterias.push({id:'uac-'+Date.now(), nombre:'Nueva materia', esquema:{p1:{form:100,inf:0},p2:{form:100,inf:0},p3:{form:100,inf:0}}});
+        saveCalif(); renderCalifMaterias(); renderCalifActividades();
+    }
+
+    function renderCalifActividades(){
+        const wrap = document.getElementById('califActWrap'); wrap.innerHTML='';
+        califAct.forEach((a,i)=>{
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input class="form-control-custom" style="padding:5px;" data-i="${i}" data-k="nombre" value="${a.nombre}"></td>
+                <td><select class="form-control-custom" style="padding:5px;" data-i="${i}" data-k="materiaId">${matOptionsCalif(a.materiaId)}</select></td>
+                <td><select class="form-control-custom" style="padding:5px;" data-i="${i}" data-k="parcial">
+                    <option ${a.parcial==1?'selected':''}>1</option><option ${a.parcial==2?'selected':''}>2</option><option ${a.parcial==3?'selected':''}>3</option>
+                </select></td>
+                <td><input class="form-control-custom" style="padding:5px;" data-i="${i}" data-k="categoria" value="${a.categoria}"></td>
+                <td><input type="number" step="0.1" class="form-control-custom" style="padding:5px;" data-i="${i}" data-k="calificacion" value="${a.calificacion}"></td>
+                <td><input type="number" class="form-control-custom" style="padding:5px;" data-i="${i}" data-k="ponderacion" value="${a.ponderacion}"></td>
+                <td style="text-align:center;"><button type="button" class="btn-icon" data-delact="${i}">🗑️</button></td>`;
+            wrap.appendChild(tr);
+        });
+    }
+    document.getElementById('califActWrap').addEventListener('input', e=>{
+        const i=e.target.dataset.i; if(i===undefined) return;
+        const a = califAct[i]; const k=e.target.dataset.k;
+        a[k] = (k==='calificacion'||k==='ponderacion'||k==='parcial') ? Number(e.target.value) : e.target.value;
+        saveAct(); renderResumen();
+    });
+    document.getElementById('califActWrap').addEventListener('click', e=>{
+        if(e.target.dataset.delact!==undefined){ califAct.splice(e.target.dataset.delact,1); saveAct(); renderCalifActividades(); renderResumen(); }
+    });
+    function agregarActividadCalif(){
+        const primera = califMaterias[0];
+        califAct.push({id:'act-'+Date.now(), materiaId:primera?primera.id:'', parcial:1, categoria:'Hacer', nombre:'Nueva actividad', calificacion:0, ponderacion:10});
+        saveAct(); renderCalifActividades(); renderResumen();
+    }
+
+    function renderResumen(){
+        const wrap = document.getElementById('califResumen'); wrap.innerHTML='';
+        let huboDatos = false;
+        califMaterias.forEach(m=>{
+            const acts = califAct.filter(a=>a.materiaId===m.id);
+            [1,2,3].forEach(p=>{
+                const inP = acts.filter(a=>a.parcial===p);
+                if(!inP.length) return;
+                huboDatos = true;
+                const totalPond = inP.reduce((s,a)=>s+Number(a.ponderacion||0),0) || 1;
+                const nota = inP.reduce((s,a)=>s+(Number(a.calificacion||0)*(Number(a.ponderacion||0)/totalPond)),0);
+                const row = document.createElement('div');
+                row.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:12.5px;';
+                row.innerHTML = `<span>${m.nombre} · P${p}</span><span style="color:#d4af37;font-weight:bold;">${nota.toFixed(1)}</span><span style="color:#6b7280;">${totalPond}% capturado</span>`;
+                wrap.appendChild(row);
+            });
+        });
+        if(!huboDatos){ wrap.innerHTML = '<p style="color:#6b7280;font-size:12.5px;">Agrega actividades para ver el promedio en tiempo real.</p>'; }
+    }
+
+    // ---- Proyector: NotaP3 = (Meta x 3) - (P1 + P2) ----
+    function renderProjector(){
+        const p1=Number(document.getElementById('pj1').value)||0;
+        const p2=Number(document.getElementById('pj2').value)||0;
+        const meta=Number(document.getElementById('pjMeta').value)||0;
+        const requerida=(meta*3)-(p1+p2);
+        const box=document.getElementById('pjResult');
+        if(requerida>10){ box.innerHTML = `Con P1=${p1} y P2=${p2}, ya no es matemáticamente posible alcanzar ${meta} (se necesitaría ${requerida.toFixed(1)} en P3, el máximo es 10).`; }
+        else if(requerida<=0){ box.innerHTML = `Con P1=${p1} y P2=${p2}, la meta de ${meta} ya está asegurada aunque obtengas 0 en P3.`; }
+        else { box.innerHTML = `Necesitas <strong style="color:#d4af37;">${requerida.toFixed(1)}</strong> en el Parcial 3 para alcanzar un promedio de ${meta}.`; }
+    }
+    ['pj1','pj2','pjMeta'].forEach(id=>document.getElementById(id).addEventListener('input', renderProjector));
+
+    // ---- Simulador sandbox (no toca califAct) ----
+    function renderSim(){
+        const wrap = document.getElementById('simWrap'); wrap.innerHTML='';
+        califAct.forEach(a=>{
+            const row = document.createElement('div');
+            row.style.cssText='display:grid;grid-template-columns:1fr 40px;gap:10px;align-items:center;padding:8px 0;font-size:12.5px;';
+            row.innerHTML = `<div><div style="margin-bottom:4px;">${a.nombre} <span style="color:#6b7280;">(P${a.parcial})</span></div>
+                <input type="range" min="0" max="10" step="0.1" value="${a.calificacion}" data-sim="${a.id}" style="width:100%;accent-color:#3b82f6;"></div>
+                <span data-simval="${a.id}" style="color:#d4af37;font-weight:bold;">${Number(a.calificacion).toFixed(1)}</span>`;
+            wrap.appendChild(row);
+        });
+    }
+    document.getElementById('simWrap').addEventListener('input', e=>{
+        if(e.target.dataset.sim){ document.querySelector(`[data-simval="${e.target.dataset.sim}"]`).textContent = Number(e.target.value).toFixed(1); }
+    });
+
+    renderCalifMaterias(); renderCalifActividades(); renderResumen(); renderProjector(); renderSim();
+    </script>
+</body>
+</html>
+

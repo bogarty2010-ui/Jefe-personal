@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+supabase/.temp/
+supabase/.branches/
+supabase/seed.sql
+*.csv
+*.zip
+*.pdf
+datos-reales/
+node_modules/
+.DS_Store
+.vscode/

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="theme-color" content="#d4af37">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CECYTEM 101">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Apartado Personal - CECYTEM Ecatepec II</title>
+    <link rel="stylesheet" href="style.css">
+<script src="supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        .profile-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+        @media (max-width: 900px) {
+            .profile-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        .credencial-preview {
+            background: linear-gradient(135deg, #0d1b2a 0%, #070b12 100%);
+            border: 2px solid #d4af37;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+        }
+        .credencial-header {
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .credencial-header h4 {
+            color: #d4af37;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        .info-group {
+            margin-bottom: 12px;
+            text-align: left;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+        }
+        .info-group label {
+            display: block;
+            font-size: 10px;
+            color: #b0c4de;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        .info-group span {
+            font-size: 13px;
+            color: #ffffff;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Menú lateral unificado -->
+    <div class="sidebar" id="appSidebar">
+        <div class="sidebar-brand">CECYTEM ECATEPEC II</div>
+        <div class="reloj-sidebar" id="global-reloj-fecha">Sincronizando reloj...</div>
+        <a href="dashboard.html" class="nav-btn">📚 Académico</a>
+        <a href="personal.html" class="nav-btn active">👤 Personal</a>
+        <a href="jefe.html" class="nav-btn">📋 Jefe de Grupo</a>
+    <a href="grupo.html" class="nav-btn">👥 Mi Grupo</a>
+    <a href="maestros.html" class="nav-btn">👨‍🏫 Maestros</a>
+        <a href="horarios.html" class="nav-btn">⏰ Horario</a>
+        <a href="agenda.html" class="nav-btn">🗓️ Agenda</a>
+        <a href="documentos.html" class="nav-btn">🗂️ Documentos</a>
+    </div>
+
+    <div class="main-content">
+        <button class="menu-toggle" onclick="toggleMenu()">☰ Menú</button>
+
+        <h2>Apartado Personal - Expediente y Credencial</h2>
+        <p style="color:#eab308;font-size:12px;font-weight:700">ROL ACTUAL: <span data-usuario-rol>ADMIN</span></p>
+        <p style="color: #b0c4de; font-size: 13px; margin-bottom: 20px;">Información general, datos médicos, contactos de emergencia y credencial escolar digital.</p>
+
+        <div class="profile-container">
+            <!-- COLUMNA IZQUIERDA: CREDENCIAL DIGITAL -->
+            <div>
+                <div class="credencial-preview">
+                    <div class="credencial-header">
+                        <img src="cecytem_logo.png" alt="Logo" style="width: 45px; height: 45px; object-fit: contain; margin-bottom: 5px;" onerror="this.style.display='none'">
+                        <h4 style="font-size: 12px; color: #ffffff;">Colegio de Estudios Científicos y Tecnológicos</h4>
+                        <span style="font-size: 10px; color: #d4af37;">CREDENCIAL ESCOLAR DIGITAL</span>
+                    </div>
+                    
+                    <div style="margin: 15px 0;">
+                        <!-- FOTO DE PERFIL INCORPORADA -->
+                        <div style="width: 95px; height: 115px; border: 1px solid #d4af37; margin: 0 auto 10px auto; border-radius: 6px; overflow: hidden; background: #000;">
+                            <img src="cecytem_logo.png" alt="Foto de perfil no configurada" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <h3 style="font-size: 15px; color: #fff; margin-bottom: 3px;" id="card-nombre">Bogart Yael Palapa Hernández</h3>
+                        <p style="font-size: 11px; color: #d4af37;" id="card-carrera">Técnico en Programación</p>
+                    </div>
+
+                    <div style="text-align: left; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; font-size: 12px; margin-bottom: 15px;">
+                        <div style="margin-bottom: 6px;"><strong>No. Control:</strong> <span id="card-control" style="color: #b0c4de; font-family: monospace;">26415082270124</span></div>
+                        <div style="margin-bottom: 6px;"><strong>CURP:</strong> <span id="card-curp" style="color: #b0c4de; font-size: 10px;">PAHB100914HMCLRGA9</span></div>
+                        <div><strong>Vigencia:</strong> <span id="card-vigencia" style="color: #4ade80;">2025 - 2028</span></div>
+                    </div>
+
+                    <div style="background: #fff; padding: 6px; border-radius: 4px; display: inline-block;">
+                        <img id="card-qr" src="" alt="QR Credencial" style="width: 100px; height: 100px; display: block;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMNA DERECHA: EXPEDIENTE Y DATOS MÉDICOS -->
+            <div>
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3 style="color: #d4af37; margin-bottom: 12px;">Datos Generales del Titular</h3>
+                    
+                    <div class="form-row" style="display: flex; gap: 10px;">
+                        <div class="info-group" style="flex: 2;">
+                            <label>Nombre Completo</label>
+                            <input class="form-control-custom" id="txt-nombre" data-campo="nombre" value="Bogart Yael Palapa Hernández">
+                        </div>
+                        <div class="info-group" style="flex: 1;">
+                            <label>No. Control</label>
+                            <input class="form-control-custom" id="txt-control" data-campo="control" value="26415082270124">
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="display: flex; gap: 10px;">
+                        <div class="info-group" style="flex: 2;">
+                            <label>Carrera</label>
+                            <input class="form-control-custom" id="txt-carrera" data-campo="carrera" value="Técnico en Programación">
+                        </div>
+                        <div class="info-group" style="flex: 1;">
+                            <label>Vigencia credencial</label>
+                            <input class="form-control-custom" id="txt-vigencia" data-campo="vigencia" value="2025 - 2028">
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="display: flex; gap: 10px;">
+                        <div class="info-group" style="flex: 2;">
+                            <label>CURP</label>
+                            <input class="form-control-custom" id="txt-curp" data-campo="curp" value="PAHB100914HMCLRGA9">
+                        </div>
+                        <div class="info-group" style="flex: 1;">
+                            <label>NSS (Seguridad Social)</label>
+                            <input class="form-control-custom" id="txt-nss" data-campo="nss" value="18261064507">
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="display: flex; gap: 10px;">
+                        <div class="info-group" style="flex: 1;">
+                            <label>Tipo de Sangre</label>
+                            <input class="form-control-custom" id="txt-sangre" data-campo="sangre" style="color: #f87171;" value="A negativo (AB+ para donación)">
+                        </div>
+                        <div class="info-group" style="flex: 1;">
+                            <label>Condiciones Médicas / Alergias</label>
+                            <input class="form-control-custom" id="txt-salud" data-campo="salud" value="Sin condiciones particulares">
+                        </div>
+                    </div>
+                    <div class="form-row" style="display: flex; gap: 10px;">
+                        <div class="info-group" style="flex: 1;">
+                            <label>Plantel y CCT</label>
+                            <input class="form-control-custom" id="txt-plantel" data-campo="plantel" value="Ecatepec II — 15ETC0044F">
+                        </div>
+                        <div class="info-group" style="flex: 1;">
+                            <label>Semestre y grupo</label>
+                            <input class="form-control-custom" id="txt-semgrupo" data-campo="semgrupo" value="1.er Semestre — Grupo 101">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="color: #d4af37; margin-bottom: 12px;">Contactos de Emergencia y Familiares</h3>
+                    
+                    <div style="margin-bottom: 12px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 6px; border: 1px solid rgba(212,175,55,0.2);">
+                        <div style="font-size: 12px; color: #d4af37; font-weight: bold; margin-bottom: 4px;">Padre: José Fabián Palapa Wong</div>
+                        <div style="font-size: 11px; color: #b0c4de;">CURP: PAWF860120HDFLNB01</div>
+                        <div style="font-size: 11px; color: #4ade80; margin-top: 2px;">📞 Teléfono: 33 4272 1478</div>
+                    </div>
+
+                    <div style="margin-bottom: 12px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 6px; border: 1px solid rgba(212,175,55,0.2);">
+                        <div style="font-size: 12px; color: #d4af37; font-weight: bold; margin-bottom: 4px;">Madre: Cecilia Montserrat Hernández Estrada</div>
+                        <div style="font-size: 11px; color: #b0c4de;">CURP: HEEC911225MDFRSC05</div>
+                        <div style="font-size: 11px; color: #4ade80; margin-top: 2px;">📞 Teléfono: 55 4215 9466</div>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 6px; border: 1px solid rgba(212,175,55,0.2);">
+                        <div style="font-size: 12px; color: #d4af37; font-weight: bold; margin-bottom: 4px;">Hermana: Alison Palapa Hernández</div>
+                        <div style="font-size: 11px; color: #b0c4de;">CURP: PAHA180720MMCLRLA3</div>
+                        <div style="font-size: 11px; color: #b0c4de; margin-top: 2px;">📞 Teléfono: N/A</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+<script src="escuela.js"></script>
+<script src="avisos.js"></script>
+    <script>
+        const KEY_PERFIL = 'cecytem_perfil';
+        const camposPerfil = ['nombre','control','carrera','vigencia','curp','nss','sangre','salud','plantel','semgrupo'];
+
+        function cargarPerfilGuardado() {
+            const guardado = obtenerDatosSeguros(KEY_PERFIL, null);
+            if (guardado && !Array.isArray(guardado)) {
+                camposPerfil.forEach(c => {
+                    const input = document.querySelector(`[data-campo="${c}"]`);
+                    if (input && guardado[c] !== undefined) input.value = guardado[c];
+                });
+            }
+        }
+
+        function guardarPerfil() {
+            const datos = {};
+            camposPerfil.forEach(c => {
+                const input = document.querySelector(`[data-campo="${c}"]`);
+                datos[c] = input ? input.value : '';
+            });
+            localStorage.setItem(KEY_PERFIL, JSON.stringify(datos));
+            if (typeof guardarDatoRemoto === 'function') guardarDatoRemoto(KEY_PERFIL, datos);
+        }
+
+        let _qrTmp = null;
+        function qrLocal(texto, img) {
+            if (typeof QRCode === 'undefined') return;
+            if (!_qrTmp) { _qrTmp = document.createElement('div'); _qrTmp.style.display = 'none'; document.body.appendChild(_qrTmp); }
+            _qrTmp.innerHTML = ''; new QRCode(_qrTmp, { text: texto, width: 150, height: 150 });
+            const c = _qrTmp.querySelector('canvas'); if (c) img.src = c.toDataURL('image/png');
+        }
+
+        function actualizarCredencial() {
+            const val = campo => (document.querySelector(`[data-campo="${campo}"]`) || {}).value || '';
+            document.getElementById('card-nombre').textContent = val('nombre');
+            document.getElementById('card-carrera').textContent = val('carrera');
+            document.getElementById('card-control').textContent = val('control');
+            document.getElementById('card-curp').textContent = val('curp');
+            document.getElementById('card-vigencia').textContent = val('vigencia');
+
+            const textoQR = `Control: ${val('control')}\nAlumno: ${val('nombre')}\nCarrera: ${val('carrera')}\nPlantel: CECYTEM Ecatepec II`;
+            const qrElement = document.getElementById('card-qr');
+            if (qrElement) qrLocal(textoQR, qrElement);   // se genera en el dispositivo, sin enviar datos a terceros
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof iniciarReloj === 'function') iniciarReloj();
+            cargarPerfilGuardado();
+            actualizarCredencial();
+
+            document.querySelectorAll('[data-campo]').forEach(input => {
+                input.addEventListener('input', () => { guardarPerfil(); actualizarCredencial(); });
+            });
+        });
+    </script>
+</body>
+</html>
+

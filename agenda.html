@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#d4af37">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CECYTEM 101">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agenda · CECYTEM Ecatepec II</title>
+<link rel="stylesheet" href="style.css">
+<script src="supabase.js"></script>
+<style>
+.ag-t{display:flex;gap:6px;margin:16px 0 14px;overflow-x:auto}.ag-t button,.ag-b{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid rgba(212,175,55,.35);background:rgba(255,255,255,.04);color:#e8eef6;font:600 14px inherit;font-family:inherit;cursor:pointer;white-space:nowrap}
+.ag-t button{flex:1}.ag-t .on,.ag-b.p{background:#d4af37;color:#070b12;border-color:#d4af37}
+.ag-f{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.ag-f label{display:block;color:#b0c4de;font-size:12px;margin-bottom:4px}
+.ag-f input,.ag-f select,.ag-ta{width:100%;min-height:46px;border-radius:8px;border:1px solid rgba(212,175,55,.3);background:rgba(0,0,0,.3);color:#fff;padding:0 10px;font-size:16px;font-family:inherit}
+.ag-ta{min-height:260px;padding:12px;line-height:1.5;resize:vertical}
+.ag-it{display:flex;gap:12px;align-items:center;padding:12px;border-radius:10px;background:rgba(255,255,255,.04);border-left:4px solid var(--c);margin-top:10px}
+.ag-it.ok{opacity:.45}.ag-it.ok b{text-decoration:line-through}.ag-it div{flex:1;min-width:0}.ag-it b{display:block;color:#fff;overflow-wrap:anywhere}.ag-it small{color:#8da2b8}
+.ag-it input[type=checkbox]{width:24px;height:24px;accent-color:#d4af37;flex:none}.ag-w{color:#d4af37;font-weight:700;font-size:13px;text-align:right;white-space:nowrap}.ag-w.v{color:#f87171}
+.ag-x{background:none;border:0;color:#8da2b8;font-size:18px;cursor:pointer;min-width:36px;min-height:44px}
+.ag-big{font-size:clamp(46px,16vw,76px);font-weight:700;text-align:center;font-variant-numeric:tabular-nums;color:#fff;margin:6px 0}
+.ag-bar{height:8px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden}.ag-bar i{display:block;height:100%;background:var(--c,#d4af37)}
+.ag-st{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:10px;margin-top:12px;text-align:center}.ag-st div{background:rgba(255,255,255,.04);border-radius:10px;padding:10px}.ag-st b{display:block;font-size:22px;color:#fff}.ag-st span{font-size:12px;color:#8da2b8}
+.ag-d{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.ag-d span{width:38px;text-align:center;border-radius:8px;padding:6px 0;font-size:12px;background:rgba(255,255,255,.06)}.ag-d .P{background:#16a34a55}.ag-d .R{background:#d9770655}.ag-d .F{background:#dc262655}.ag-d .J{background:#2563eb55}
+.ag-v{color:#8da2b8;text-align:center;padding:22px 8px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="sidebar" id="appSidebar">
+    <div class="sidebar-brand">CECYTEM ECATEPEC II</div>
+    <div class="reloj-sidebar" id="global-reloj-fecha">Sincronizando reloj...</div>
+    <a href="dashboard.html" class="nav-btn">📖 Académico</a>
+    <a href="personal.html" class="nav-btn">👤 Personal</a>
+    <a href="jefe.html" class="nav-btn">📋 Jefe de Grupo</a>
+    <a href="grupo.html" class="nav-btn">👥 Mi Grupo</a>
+    <a href="maestros.html" class="nav-btn">👨‍🏫 Maestros</a>
+    <a href="horarios.html" class="nav-btn">⏰ Horario</a>
+    <a href="agenda.html" class="nav-btn active">🗓️ Agenda</a>
+    <a href="documentos.html" class="nav-btn">🗂️ Documentos</a>
+</div>
+<div class="main-content">
+    <button class="menu-toggle" onclick="toggleMenu()">☰ Menú</button>
+    <h2>Agenda</h2>
+    <p style="color:#b0c4de;font-size:13px;margin:4px 0 0">Exámenes y entregas, notas por materia, tiempo de estudio y tu asistencia.</p>
+    <div class="ag-t" id="agT"></div>
+    <div id="agV"></div>
+</div>
+<script src="app.js"></script>
+<script src="escuela.js"></script>
+<script src="avisos.js"></script>
+<script>
+const { DOCENTES, ahoraMX, colorDe, fmtDur } = window.ESCUELA;
+const $ = id => document.getElementById(id);
+const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const L = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (_) { return d; } };
+const S = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} };
+const pad = n => String(n).padStart(2, '0');
+const fechaHoy = () => { const n = ahoraMX(); return `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`; };
+const MATS = DOCENTES.map(d => d.materia), opcM = (extra) => (extra ? `<option>${extra}</option>` : '') + MATS.map(m => `<option>${esc(m)}</option>`).join('');
+const TABS = { eventos:'📌 Eventos', notas:'📝 Notas', estudio:'⏱️ Estudio', asistencia:'✅ Asistencia' };
+let tab = 'eventos', verHechos = false, matNota = MATS[0], tmr = null;
+
+function go(t) { tab = t; $('agT').innerHTML = Object.entries(TABS).map(([k, v]) => `<button class="${k === tab ? 'on' : ''}" onclick="go('${k}')">${v}</button>`).join(''); ({ eventos:vEventos, notas:vNotas, estudio:vEstudio, asistencia:vAsist })[t](); }
+
+// ---------- Eventos ----------
+function vEventos() {
+  $('agV').innerHTML = `<div class="card"><h3 style="color:#d4af37;margin-bottom:12px">Nuevo examen, entrega o evento</h3><div class="ag-f">
+    <div><label for="eT">Título</label><input id="eT" placeholder="Ej. Examen de álgebra"></div>
+    <div><label for="eTipo">Tipo</label><select id="eTipo"><option>Examen</option><option>Entrega</option><option>Evento</option></select></div>
+    <div><label for="eM">Materia</label><select id="eM">${opcM('General')}</select></div>
+    <div><label for="eF">Fecha</label><input id="eF" type="date" value="${fechaHoy()}"></div>
+    <div><label for="eH">Hora (opcional)</label><input id="eH" type="time"></div></div>
+    <button class="ag-b p" style="width:100%;margin-top:14px" onclick="addEv()">Agregar</button></div>
+    <div class="card" style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3 style="color:#d4af37">Próximos</h3>
+    <button class="ag-b" onclick="verHechos=!verHechos;vEventos()">${verHechos ? 'Ver pendientes' : 'Ver hechos'}</button></div><div id="eL"></div></div>`;
+  const n = ahoraMX(), ev = L('agenda_eventos', []).filter(e => !!e.hecho === verHechos).sort((a, b) => (a.fecha + (a.hora || '23:59')).localeCompare(b.fecha + (b.hora || '23:59')));
+  $('eL').innerHTML = ev.length ? ev.map(e => {
+    const ms = new Date(e.fecha + 'T' + (e.hora || '23:59')) - n, dias = Math.round((new Date(e.fecha + 'T00:00') - new Date(fechaHoy() + 'T00:00')) / 864e5);
+    const w = e.hecho ? 'Hecho' : ms < 0 ? 'Venció' : dias === 0 ? (e.hora ? 'Hoy · en ' + fmtDur(ms/1000) : 'Hoy') : dias === 1 ? 'Mañana' : `En ${dias} días`;
+    const col = e.materia === 'General' ? '#d4af37' : colorDe(e.materia);
+    return `<div class="ag-it ${e.hecho ? 'ok' : ''}" style="--c:${col}"><input type="checkbox" ${e.hecho ? 'checked' : ''} onchange="hecho('${e.id}',this.checked)" aria-label="Marcar como hecho"><div><b>${esc(e.titulo)}</b><small>${esc(e.tipo)} · ${esc(e.materia)} · ${new Date(e.fecha + 'T12:00').toLocaleDateString('es-MX', { weekday:'short', day:'numeric', month:'short' })}${e.hora ? ' ' + e.hora : ''}</small></div><span class="ag-w ${ms < 0 && !e.hecho ? 'v' : ''}">${w}</span><button class="ag-x" onclick="delEv('${e.id}')" aria-label="Eliminar">✕</button></div>`;
+  }).join('') : `<div class="ag-v">${verHechos ? 'Aún no marcas nada como hecho.' : 'Sin pendientes. Agrega tu próximo examen o entrega arriba.'}</div>`;
+}
+function addEv() {
+  const t = $('eT').value.trim(), f = $('eF').value; if (!t || !f) return alert('Escribe el título y elige la fecha.');
+  const ev = L('agenda_eventos', []); ev.push({ id:Date.now().toString(36), titulo:t, tipo:$('eTipo').value, materia:$('eM').value, fecha:f, hora:$('eH').value, hecho:false }); S('agenda_eventos', ev); vEventos();
+}
+const hecho = (id, v) => { const ev = L('agenda_eventos', []); ev.forEach(e => { if (e.id === id) e.hecho = v; }); S('agenda_eventos', ev); vEventos(); };
+const delEv = id => { if (confirm('¿Eliminar?')) { S('agenda_eventos', L('agenda_eventos', []).filter(e => e.id !== id)); vEventos(); } };
+
+// ---------- Notas por materia ----------
+function vNotas() {
+  const notas = L('agenda_notas', {});
+  $('agV').innerHTML = `<div class="card"><div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:12px">${MATS.map(m => `<button class="ag-b ${m === matNota ? 'p' : ''}" style="flex:none" onclick="matNota='${m.replace(/'/g, "\\'")}';vNotas()">${esc(m.replace(/ I$/, ''))}${notas[m] ? ' ●' : ''}</button>`).join('')}</div>
+    <textarea class="ag-ta" id="nTa" placeholder="Apuntes, fórmulas o pendientes de ${esc(matNota)}…" aria-label="Notas de ${esc(matNota)}">${esc(notas[matNota] || '')}</textarea><div id="nSt" style="color:#8da2b8;font-size:12px;margin-top:6px"> </div></div>`;
+  let t; $('nTa').addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => { const n = L('agenda_notas', {}); n[matNota] = e.target.value; S('agenda_notas', n); $('nSt').textContent = 'Guardado en este dispositivo'; }, 400); });
+}
+
+// ---------- Estudio (temporizador) ----------
+const estudio = () => L('agenda_estudio', {});
+function vEstudio() {
+  const hoy = fechaHoy(), est = estudio(), t = L('agenda_timer', null), min7 = {}; let hoyMin = 0, sem = 0;
+  Object.entries(est).forEach(([f, o]) => { const dif = (new Date(hoy) - new Date(f)) / 864e5; if (dif >= 0 && dif < 7) Object.entries(o).forEach(([m, v]) => { min7[m] = (min7[m] || 0) + v; sem += v; if (f === hoy) hoyMin += v; }); });
+  const mx = Math.max(1, ...Object.values(min7));
+  $('agV').innerHTML = `<div class="card" id="eCard"><div class="ag-f"><div><label for="sM">Materia</label><select id="sM" ${t ? 'disabled' : ''}>${opcM()}</select></div>
+    <div><label for="sD">Duración</label><select id="sD" ${t ? 'disabled' : ''}><option value="15">15 min</option><option value="25" selected>25 min</option><option value="45">45 min</option></select></div></div>
+    <div class="ag-big" id="sT">25:00</div><div class="ag-bar"><i id="sB" style="width:0"></i></div>
+    <button class="ag-b p" id="sBtn" style="width:100%;margin-top:14px" onclick="${t ? 'cancelarT()' : 'iniciarT()'}">${t ? 'Cancelar' : 'Empezar a estudiar'}</button></div>
+    <div class="card" style="margin-top:16px"><h3 style="color:#d4af37">Tu estudio</h3><div class="ag-st"><div><b>${hoyMin}</b><span>min hoy</span></div><div><b>${sem}</b><span>min en 7 días</span></div></div>
+    ${Object.keys(min7).length ? Object.entries(min7).sort((a, b) => b[1] - a[1]).map(([m, v]) => `<div style="margin-top:12px;font-size:13px;color:#e8eef6">${esc(m)} · ${v} min<div class="ag-bar" style="--c:${colorDe(m)};margin-top:4px"><i style="width:${v / mx * 100}%"></i></div></div>`).join('') : '<div class="ag-v">Aún no registras tiempo de estudio.</div>'}</div>`;
+  if (t) { $('sM').value = t.materia; $('sD').value = t.min; }
+  pintarT();
+}
+function iniciarT() { const min = +$('sD').value; S('agenda_timer', { fin:Date.now() + min * 60000, min, materia:$('sM').value }); vEstudio(); }
+function cancelarT() { localStorage.removeItem('agenda_timer'); vEstudio(); }
+function pintarT() {
+  clearInterval(tmr); const t = L('agenda_timer', null), el = $('sT'); if (!el) return;
+  const paso = () => {
+    if (!t) { const m = +$('sD').value; el.textContent = pad(m) + ':00'; return; }
+    const r = Math.max(0, t.fin - Date.now()); el.textContent = pad(Math.floor(r / 60000)) + ':' + pad(Math.floor(r % 60000 / 1000)); $('sB').style.width = (100 - r / (t.min * 60000) * 100) + '%'; $('eCard').style.setProperty('--c', colorDe(t.materia));
+    if (r <= 0) { clearInterval(tmr); const e = estudio(), f = fechaHoy(); (e[f] = e[f] || {})[t.materia] = (e[f][t.materia] || 0) + t.min; S('agenda_estudio', e); localStorage.removeItem('agenda_timer');
+      if (window.CECYTEM_AVISOS) CECYTEM_AVISOS.avisar('¡Sesión terminada!', `${t.min} min de ${t.materia}. Toma un descanso de 5 min.`, colorDe(t.materia)); vEstudio(); }
+  };
+  paso(); if (t) tmr = setInterval(paso, 500); else $('sD').onchange = paso;
+}
+
+// ---------- Mi asistencia (usa las listas que cierra el jefe de grupo) ----------
+function vAsist() {
+  const ctrl = (L('usuarioActual', {}).numero_control || '') + '', A = L('jefe101_asistencia', {}), C = L('jefe101_cerradas', {});
+  const dias = Object.keys(C).filter(d => C[d]).sort();
+  if (!dias.length) { $('agV').innerHTML = '<div class="card"><div class="ag-v">Todavía no hay listas cerradas. Cuando el jefe de grupo cierre una lista, aquí verás tu porcentaje y tus faltas.</div></div>'; return; }
+  let p = 0, r = 0, j = 0, f = 0; const est = dias.map(d => { const e = (A[d] || {})[ctrl] || 'Falta', k = e === 'Presente' ? 'P' : e === 'Retardo' ? 'R' : e === 'Justificado' ? 'J' : 'F'; ({ P:() => p++, R:() => r++, J:() => j++, F:() => f++ })[k](); return [d, k]; });
+  const base = dias.length - j, pct = base > 0 ? Math.round((p + r) / base * 100) : 100;
+  $('agV').innerHTML = `<div class="card"><div class="ag-big" style="color:${pct >= 80 ? '#4ade80' : '#f87171'}">${pct}%</div><div style="text-align:center;color:#8da2b8;font-size:13px">de asistencia en ${dias.length} días con lista cerrada</div>
+    <div class="ag-st"><div><b>${p}</b><span>Presente</span></div><div><b>${r}</b><span>Retardo</span></div><div><b>${f}</b><span>Faltas</span></div><div><b>${j}</b><span>Justificado</span></div></div>
+    <div class="ag-d">${est.slice(-30).map(([d, k]) => `<span class="${k}" title="${d}">${d.slice(8)}${k}</span>`).join('')}</div></div>`;
+}
+document.addEventListener('DOMContentLoaded', () => go('eventos'));
+</script>
+</body>
+</html>

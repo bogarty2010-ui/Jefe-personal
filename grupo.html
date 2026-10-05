@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#d4af37">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CECYTEM 101">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi Grupo · CECYTEM Ecatepec II</title>
+<link rel="stylesheet" href="style.css">
+<script src="supabase.js"></script>
+<style>
+.ag-t{display:flex;gap:6px;margin:16px 0 14px;overflow-x:auto}.ag-t button,.ag-b{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid rgba(212,175,55,.35);background:rgba(255,255,255,.04);color:#e8eef6;font:600 14px inherit;font-family:inherit;cursor:pointer;white-space:nowrap}
+.ag-t button{flex:1}.ag-t .on,.ag-b.p{background:#d4af37;color:#070b12;border-color:#d4af37}
+.ag-f{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.ag-f label{display:block;color:#b0c4de;font-size:12px;margin-bottom:4px}
+.ag-f input,.ag-f select,.ag-ta{width:100%;min-height:46px;border-radius:8px;border:1px solid rgba(212,175,55,.3);background:rgba(0,0,0,.3);color:#fff;padding:0 10px;font-size:16px;font-family:inherit}
+.ag-ta{min-height:260px;padding:12px;line-height:1.5;resize:vertical}
+.ag-it{display:flex;gap:12px;align-items:center;padding:12px;border-radius:10px;background:rgba(255,255,255,.04);border-left:4px solid var(--c);margin-top:10px}
+.ag-it.ok{opacity:.45}.ag-it.ok b{text-decoration:line-through}.ag-it div{flex:1;min-width:0}.ag-it b{display:block;color:#fff;overflow-wrap:anywhere}.ag-it small{color:#8da2b8}
+.ag-it input[type=checkbox]{width:24px;height:24px;accent-color:#d4af37;flex:none}.ag-w{color:#d4af37;font-weight:700;font-size:13px;text-align:right;white-space:nowrap}.ag-w.v{color:#f87171}
+.ag-x{background:none;border:0;color:#8da2b8;font-size:18px;cursor:pointer;min-width:36px;min-height:44px}
+.ag-big{font-size:clamp(46px,16vw,76px);font-weight:700;text-align:center;font-variant-numeric:tabular-nums;color:#fff;margin:6px 0}
+.ag-bar{height:8px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden}.ag-bar i{display:block;height:100%;background:var(--c,#d4af37)}
+.ag-st{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:10px;margin-top:12px;text-align:center}.ag-st div{background:rgba(255,255,255,.04);border-radius:10px;padding:10px}.ag-st b{display:block;font-size:22px;color:#fff}.ag-st span{font-size:12px;color:#8da2b8}
+.ag-d{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.ag-d span{width:38px;text-align:center;border-radius:8px;padding:6px 0;font-size:12px;background:rgba(255,255,255,.06)}.ag-d .P{background:#16a34a55}.ag-d .R{background:#d9770655}.ag-d .F{background:#dc262655}.ag-d .J{background:#2563eb55}
+.ag-v{color:#8da2b8;text-align:center;padding:22px 8px;font-size:14px}
+
+.gp-r{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}.gp-r input,.gp-r select,.gp-r textarea{flex:1 1 150px;min-height:44px;border-radius:8px;border:1px solid rgba(212,175,55,.3);background:rgba(0,0,0,.3);color:#fff;padding:8px 10px;font-size:16px;font-family:inherit;min-width:0}
+.gp-r textarea{flex-basis:100%;min-height:80px}.gp-k{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}.gp-k div{background:rgba(255,255,255,.04);border-radius:10px;padding:12px;text-align:center}.gp-k b{display:block;font-size:24px;color:#fff}.gp-k span{font-size:12px;color:#8da2b8}
+.gp-tag{display:inline-block;border-radius:10px;padding:2px 9px;font-size:12px;font-weight:600;background:#ffffff14}.gp-tag.r{background:#dc262655;color:#fecaca}.gp-tag.a{background:#d9770655;color:#fed7aa}.gp-tag.v{background:#16a34a55;color:#bbf7d0}
+.gp-c{margin-top:14px}.gp-c h3{color:#d4af37;margin:0 0 4px}.ag-it small{display:block}.gp-pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:10px}
+.gp-pg label{display:flex;gap:8px;align-items:center;background:rgba(255,255,255,.04);border-radius:8px;padding:8px;font-size:13px;color:#e8eef6;min-height:44px}.gp-pg input{width:20px;height:20px;accent-color:#d4af37;flex:none}
+.ag-it select{background:rgba(0,0,0,.4);color:#fff;border:1px solid rgba(212,175,55,.3);border-radius:8px;min-height:40px;padding:0 6px;flex:none;max-width:130px}
+.gp-ur{border-left-color:#f87171!important;background:rgba(248,113,113,.08)}
+</style>
+</head>
+<body>
+<div class="sidebar" id="appSidebar">
+    <div class="sidebar-brand">CECYTEM ECATEPEC II</div>
+    <div class="reloj-sidebar" id="global-reloj-fecha">Sincronizando reloj...</div>
+    <a href="dashboard.html" class="nav-btn">📖 Académico</a>
+    <a href="personal.html" class="nav-btn">👤 Personal</a>
+    <a href="jefe.html" class="nav-btn">📋 Jefe de Grupo</a>
+    <a href="grupo.html" class="nav-btn active">👥 Mi Grupo</a>
+    <a href="maestros.html" class="nav-btn">👨‍🏫 Maestros</a>
+    <a href="horarios.html" class="nav-btn">⏰ Horario</a>
+    <a href="agenda.html" class="nav-btn">🗓️ Agenda</a>
+    <a href="documentos.html" class="nav-btn">🗂️ Documentos</a>
+</div>
+<div class="main-content">
+    <button class="menu-toggle" onclick="toggleMenu()">☰ Menú</button>
+    <h2>Mi Grupo · 101 Programación</h2>
+    <p style="color:#b0c4de;font-size:13px;margin:4px 0 0">Comité, docentes, manuales, faltas, reglamento, tesorería y avisos. Todo se guarda en este dispositivo.</p>
+    <div class="ag-t" id="gT"></div><div id="gV"></div>
+</div>
+<script src="app.js"></script>
+<script src="escuela.js"></script>
+<script src="avisos.js"></script>
+<script src="datos.js"></script>
+<script>
+const { DOCENTES, aulaDe, colorDe } = window.ESCUELA;
+const L = (k, d) => { const v = leer('g101_' + k, d); return v; }, S = (k, v) => guardar('g101_' + k, v);
+const ctl = c => c, nom = c => (ALUMNOS.find(a => a.control === c) || { nombre:c }).nombre;
+const id = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 5), $m = n => '$' + (+n || 0).toLocaleString('es-MX');
+const fecha = f => new Date(f + 'T12:00').toLocaleDateString('es-MX', { day:'numeric', month:'short' });
+const TABS = { resumen:'📊 Resumen', comite:'🏛️ Comité', docentes:'👨‍🏫 Docentes', manuales:'📚 Manuales', faltas:'🗒️ Faltas', reglas:'📜 Reglamento', tesoreria:'💰 Tesorería', avisos:'📢 Avisos' };
+let tab = 'resumen', matM = 'Todas', cuotaSel = null, alumnoSel = ALUMNOS[0].control;
+const go = t => { tab = t; $('gT').innerHTML = Object.entries(TABS).map(([k, v]) => `<button class="${k === t ? 'on' : ''}" onclick="go('${k}')">${v}</button>`).join(''); ({ resumen:vResumen, comite:vComite, docentes:vDocentes, manuales:vManuales, faltas:vFaltas, reglas:vReglas, tesoreria:vTesoreria, avisos:vAvisos })[t](); };
+const copiar = async t => { try { if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) await navigator.share({ text:t }); else { await navigator.clipboard.writeText(t); alert('Copiado. Ya puedes pegarlo en WhatsApp.'); } } catch (_) {} };
+const vacio = t => `<div class="ag-v">${t}</div>`;
+
+// ---- datos derivados ----
+function faltasInfo() {
+  const dias = Object.keys(cierres).filter(d => cierres[d]), just = L('just', []);
+  return ALUMNOS.map(({ control:c, nombre:n }) => { const r = resumenAlumno(ctl(c), dias), pf = dias.length ? r.f / dias.length * 100 : 0, nj = just.filter(j => j.control === ctl(c)).length; return { c:ctl(c), n, ...r, dias:dias.length, pf, nj }; });
+}
+const saldo = () => { const cu = L('cuotas', []), g = L('gastos', []); const rec = cu.reduce((s, q) => s + q.monto * Object.values(q.pagos || {}).filter(Boolean).length, 0), gas = g.reduce((s, x) => s + x.monto, 0); return { rec, gas, sal:rec - gas }; };
+
+// ---- Resumen ----
+function vResumen() {
+  const fi = faltasInfo(), riesgo = fi.filter(x => x.pf >= 10).length, cerca = fi.filter(x => x.pf >= 7 && x.pf < 10).length, s = saldo(), av = L('avisos', []).filter(a => a.urgente).length;
+  const chk = leer(K.check, {}), inc = ALUMNOS.filter(({ control:c }) => { const x = chk[ctl(c)]; return x && ((x.uniforme && x.uniforme !== 'Completo') || x.credencial === 'No'); });
+  const pg = fi.filter(x => x.pct !== null), prom = pg.length ? Math.round(pg.reduce((a, x) => a + x.pct, 0) / pg.length) : null;
+  $('gV').innerHTML = `<div class="card"><div class="gp-k"><div><b>${ALUMNOS.length}</b><span>alumnos</span></div><div><b>${prom === null ? '—' : prom + '%'}</b><span>asistencia del grupo</span></div><div><b style="color:${riesgo ? '#f87171' : '#4ade80'}">${riesgo}</b><span>en el límite de faltas</span></div><div><b>${cerca}</b><span>cerca del límite</span></div><div><b>${inc.length}</b><span>con uniforme o credencial pendiente</span></div><div><b style="color:${s.sal < 0 ? '#f87171' : '#fff'}">${$m(s.sal)}</b><span>saldo de tesorería</span></div><div><b>${av}</b><span>avisos urgentes</span></div></div></div>
+  <div class="card gp-c"><h3>Atajos</h3><div class="gp-r"><button class="ag-b" onclick="go('faltas')">Registrar justificante</button><button class="ag-b" onclick="go('avisos')">Publicar aviso</button><button class="ag-b" onclick="go('tesoreria')">Cobrar cuota</button><button class="ag-b" onclick="location.href='jefe.html'">Pasar lista</button></div></div>`;
+}
+// ---- Comité ----
+function vComite() {
+  let m = L('comite', null); if (!m) { m = [{ id:id(), rol:'Jefe de grupo', nombre:'Bogart Yael Palapa Hernández', tel:'' }, { id:id(), rol:'Subjefe', nombre:'Christopher', tel:'' }, { id:id(), rol:'Suplente', nombre:'Ian', tel:'' }, { id:id(), rol:'Orientadora', nombre:'Ing. Erika Xichetl Gutiérrez Trejo', tel:'' }]; S('comite', m); }
+  $('gV').innerHTML = `<div class="card">${m.map(x => `<div class="ag-it" style="--c:#d4af37"><div><b>${esc(x.rol)}</b><div class="gp-r" style="margin:6px 0 0"><input value="${esc(x.nombre)}" aria-label="Nombre" onchange="edCom('${x.id}','nombre',this.value)"><input value="${esc(x.tel)}" type="tel" placeholder="Teléfono" aria-label="Teléfono" onchange="edCom('${x.id}','tel',this.value)"></div></div>${x.tel ? `<a class="ag-b" style="display:grid;place-items:center;text-decoration:none" href="tel:${esc(x.tel)}">Llamar</a>` : ''}<button class="ag-x" onclick="delCom('${x.id}')" aria-label="Quitar">✕</button></div>`).join('')}
+  <div class="gp-r"><input id="cR" placeholder="Cargo (ej. Tesorero)"><input id="cN" placeholder="Nombre"><button class="ag-b p" onclick="addCom()">Agregar</button></div></div>`;
+}
+const edCom = (i, k, v) => { const m = L('comite', []); m.forEach(x => { if (x.id === i) x[k] = v; }); S('comite', m); if (k === 'tel') vComite(); };
+const delCom = i => { if (confirm('¿Quitar del comité?')) { S('comite', L('comite', []).filter(x => x.id !== i)); vComite(); } };
+const addCom = () => { const r = $('cR').value.trim(), n = $('cN').value.trim(); if (!r || !n) return; const m = L('comite', []); m.push({ id:id(), rol:r, nombre:n, tel:'' }); S('comite', m); vComite(); };
+// ---- Docentes, avisos de clase y acuerdos ----
+function vDocentes() {
+  const da = L('docavisos', {}), ac = L('acuerdos', []);
+  $('gV').innerHTML = DOCENTES.map(d => `<div class="ag-it" style="--c:${d.color};align-items:flex-start"><div><b>${esc(d.materia)}</b><small>${esc(d.nombre)} · ${d.horas} h/sem · ${aulaDe(d.materia)}</small><div class="gp-r" style="margin-top:8px"><input value="${esc(da[d.materia] || '')}" placeholder="Aviso o cambio de última hora" aria-label="Aviso de ${esc(d.materia)}" onchange="edDA(this,'${d.materia.replace(/'/g, "\\'")}')"></div></div></div>`).join('') +
+  `<div class="card gp-c"><h3>Firmas y acuerdos de clase</h3><div class="gp-r"><select id="aM">${DOCENTES.map(d => `<option>${esc(d.materia)}</option>`).join('')}</select><textarea id="aT" placeholder="Acuerdo tomado con el docente (fechas, criterios, material)…"></textarea><button class="ag-b p" onclick="addAc()">Guardar acuerdo</button></div>
+  ${ac.length ? ac.slice().reverse().map(x => `<div class="ag-it" style="--c:${colorDe(x.materia)}"><div><b>${esc(x.texto)}</b><small>${esc(x.materia)} · ${fecha(x.fecha)}</small></div><button class="ag-x" onclick="delAc('${x.id}')" aria-label="Eliminar">✕</button></div>`).join('') : vacio('Aún no hay acuerdos registrados.')}</div>`;
+}
+const edDA = (el, m) => { const d = L('docavisos', {}); d[m] = el.value; S('docavisos', d); };
+const addAc = () => { const t = $('aT').value.trim(); if (!t) return; const a = L('acuerdos', []); a.push({ id:id(), materia:$('aM').value, texto:t, fecha:HOY }); S('acuerdos', a); vDocentes(); };
+const delAc = i => { S('acuerdos', L('acuerdos', []).filter(x => x.id !== i)); vDocentes(); };
+// ---- Manuales (archivos en el dispositivo + enlaces) ----
+const dbp = new Promise((ok, mal) => { const r = indexedDB.open('cecytem_manuales', 1); r.onupgradeneeded = () => r.result.createObjectStore('m', { keyPath:'id' }); r.onsuccess = () => ok(r.result); r.onerror = () => mal(r.error); });
+const tx = async (modo, f) => { const db = await dbp; return new Promise((ok, mal) => { const t = db.transaction('m', modo), r = f(t.objectStore('m')); t.oncomplete = () => ok(r.result); t.onerror = () => mal(t.error); }); };
+async function vManuales() {
+  const todos = await tx('readonly', s => s.getAll()), mats = ['Todas', ...DOCENTES.map(d => d.materia)], vis = todos.filter(x => matM === 'Todas' || x.materia === matM).sort((a, b) => b.fecha - a.fecha);
+  $('gV').innerHTML = `<div class="card"><div class="gp-r" style="margin:0"><select id="mM">${DOCENTES.map(d => `<option ${d.materia === matM ? 'selected' : ''}>${esc(d.materia)}</option>`).join('')}</select><button class="ag-b p" onclick="$('mF').click()">⬆️ Subir manual o guía</button><button class="ag-b" onclick="addEnlace()">🔗 Agregar enlace</button></div><input type="file" id="mF" multiple hidden>
+  <div style="display:flex;gap:6px;overflow-x:auto;margin-top:14px">${mats.map(m => `<button class="ag-b ${m === matM ? 'p' : ''}" style="flex:none;min-height:38px" onclick="matM='${m.replace(/'/g, "\\'")}';vManuales()">${esc(m.replace(/ I$/, ''))}</button>`).join('')}</div></div>
+  <div class="card gp-c">${vis.length ? vis.map(x => `<div class="ag-it" style="--c:${colorDe(x.materia)}"><div><b>${esc(x.nombre)}</b><small>${esc(x.materia)} · ${x.url ? 'Enlace' : (x.blob.size / 1024 | 0) + ' KB'} · ${fecha(new Date(x.fecha).toISOString().slice(0, 10))}</small></div><button class="ag-b" onclick="abrirM('${x.id}')">Abrir</button><button class="ag-x" onclick="delM('${x.id}')" aria-label="Eliminar">✕</button></div>`).join('') : vacio('Sin manuales en esta materia. Sube el PDF del manual del alumno o guarda su enlace.')}</div>`;
+  $('mF').onchange = async e => { for (const f of e.target.files) await tx('readwrite', s => s.put({ id:id(), materia:$('mM').value, nombre:f.name, blob:f, fecha:Date.now() })); vManuales(); };
+}
+async function addEnlace() { const u = prompt('Pega el enlace (https://…)'); if (!u || !/^https?:\/\//i.test(u)) return u && alert('El enlace debe empezar con http:// o https://'); const n = prompt('Nombre del recurso', 'Manual en línea') || 'Enlace'; await tx('readwrite', s => s.put({ id:id(), materia:$('mM').value, nombre:n, url:u, fecha:Date.now() })); vManuales(); }
+async function abrirM(i) { const x = (await tx('readonly', s => s.getAll())).find(y => y.id === i); window.open(x.url || URL.createObjectURL(x.blob), '_blank', 'noopener'); }
+async function delM(i) { if (confirm('¿Eliminar este recurso?')) { await tx('readwrite', s => s.delete(i)); vManuales(); } }
+// ---- Faltas y justificantes ----
+function vFaltas() {
+  const fi = faltasInfo().sort((a, b) => b.pf - a.pf || a.n.localeCompare(b.n)), just = L('just', []);
+  const tag = x => x.pf >= 10 ? '<span class="gp-tag r">En el límite</span>' : x.pf >= 7 ? '<span class="gp-tag a">Cerca del límite</span>' : '<span class="gp-tag v">Bien</span>';
+  $('gV').innerHTML = `<div class="card"><h3 style="color:#d4af37">Conteo de faltas (límite 10%)</h3><p style="color:#8da2b8;font-size:12px;margin:4px 0 0">Se calcula sobre ${fi[0].dias} día(s) con lista cerrada en Jefe de Grupo. Las asistencias sin registrar cuentan como falta.</p>
+  ${fi[0].dias ? fi.map(x => `<div class="ag-it" style="--c:${x.pf >= 10 ? '#f87171' : x.pf >= 7 ? '#fb923c' : '#4ade80'}"><div><b>${esc(x.n)}</b><small>${x.f} falta(s) · ${x.r} retardo(s) · ${x.nj}/3 justificantes</small></div><div style="text-align:right"><b style="color:#fff">${x.pf.toFixed(1)}%</b>${tag(x)}</div></div>`).join('') : vacio('Cuando cierres tu primera lista en Jefe de Grupo, aquí aparecerá el conteo.')}</div>
+  <div class="card gp-c"><h3>Solicitud rápida de justificante</h3><div class="gp-r"><select id="jA">${ALUMNOS.map(a => `<option value="${ctl(a.control)}">${esc(a.nombre)}</option>`).join('')}</select><input id="jF" type="date" value="${HOY}" aria-label="Fecha de la falta"><input id="jM" placeholder="Motivo (ej. cita médica)"><button class="ag-b p" onclick="addJust()">Registrar y copiar solicitud</button></div>
+  ${just.length ? just.slice().reverse().map(j => `<div class="ag-it" style="--c:#60a5fa"><div><b>${esc(nom(j.control))}</b><small>${fecha(j.fecha)} · ${esc(j.motivo)}</small></div><select aria-label="Estado" onchange="estJ('${j.id}',this.value)">${['Pendiente', 'Entregado', 'Aprobado'].map(e => `<option ${e === j.estado ? 'selected' : ''}>${e}</option>`).join('')}</select><button class="ag-x" onclick="delJ('${j.id}')" aria-label="Eliminar">✕</button></div>`).join('') : vacio('Sin justificantes registrados.')}</div>`;
+}
+function addJust() {
+  const c = $('jA').value, f = $('jF').value, m = $('jM').value.trim(); if (!f || !m) return alert('Escribe la fecha y el motivo.');
+  const just = L('just', []); if (just.filter(j => j.control === c).length >= 3 && !confirm('Este alumno ya tiene 3 justificantes registrados. ¿Registrar otro de todos modos?')) return;
+  just.push({ id:id(), control:c, fecha:f, motivo:m, estado:'Pendiente' }); S('just', just);
+  copiar(`Solicitud de justificante de falta\nGrupo 101 · Programación · CECYTEM Plantel Ecatepec II\n\nAlumno: ${nom(c)}\nNo. de control: ${c}\nFecha de la falta: ${fecha(f)}\nMotivo: ${m}\n\nSolicito a Orientación Educativa (Ing. Erika Xichetl Gutiérrez Trejo) el trámite del justificante.\n\nAtte. Bogart Yael Palapa Hernández, Jefe de grupo`); vFaltas();
+}
+const estJ = (i, e) => { const j = L('just', []); j.forEach(x => { if (x.id === i) x.estado = e; }); S('just', j); };
+const delJ = i => { S('just', L('just', []).filter(x => x.id !== i)); vFaltas(); };
+// ---- Listas editables (reglamento y protocolos) ----
+function listaEd(key, seed, titulo, ph) {
+  let l = L(key, null); if (!l) { l = seed.map(s => ({ id:id(), ...s })); S(key, l); }
+  return `<div class="card gp-c"><h3>${titulo}</h3>${l.map(x => `<div class="ag-it" style="--c:#d4af37;align-items:flex-start"><div><b>${esc(x.t)}</b><textarea class="ag-ta" style="min-height:70px;margin-top:6px" placeholder="${ph}" aria-label="${esc(x.t)}" onchange="edL('${key}','${x.id}',this.value)">${esc(x.d)}</textarea></div><button class="ag-x" onclick="delL('${key}','${x.id}')" aria-label="Quitar">✕</button></div>`).join('')}
+  <div class="gp-r"><input id="n_${key}" placeholder="Nuevo punto"><button class="ag-b p" onclick="addL('${key}')">Agregar</button></div></div>`;
+}
+const edL = (k, i, v) => { const l = L(k, []); l.forEach(x => { if (x.id === i) x.d = v; }); S(k, l); };
+const delL = (k, i) => { if (confirm('¿Quitar este punto?')) { S(k, L(k, []).filter(x => x.id !== i)); go(tab); } };
+const addL = k => { const t = $('n_' + k).value.trim(); if (!t) return; const l = L(k, []); l.push({ id:id(), t, d:'' }); S(k, l); go(tab); };
+const PH = 'Pega aquí el texto oficial del código de convivencia';
+function vReglas() {
+  const chk = leer(K.check, {}), al = ALUMNOS.map(({ control:c, nombre:n }) => { const x = chk[ctl(c)] || {}, p = []; if (x.uniforme && x.uniforme !== 'Completo') p.push('uniforme ' + x.uniforme.toLowerCase()); if (x.credencial === 'No') p.push('sin credencial'); return p.length ? { n, p:p.join(' · ') } : null; }).filter(Boolean);
+  $('gV').innerHTML = listaEd('reglas', [{ t:'Horarios y puntualidad', d:'' }, { t:'Uso de credencial', d:'' }, { t:'Artículos no solicitados', d:'' }, { t:'Uniforme', d:'' }], 'Código de convivencia (resumen)', PH) +
+    `<div class="card gp-c"><h3>Alertas por incumplimiento</h3><p style="color:#8da2b8;font-size:12px;margin:4px 0 0">Sale del checklist que llenas en Jefe de Grupo (uniforme y credencial).</p>${al.length ? al.map(x => `<div class="ag-it" style="--c:#fb923c"><div><b>${esc(x.n)}</b><small>${esc(x.p)}</small></div></div>`).join('') : vacio('Sin alertas registradas.')}</div>`;
+}
+// ---- Tesorería ----
+function vTesoreria() {
+  const cu = L('cuotas', []), g = L('gastos', []), s = saldo(), q = cu.find(x => x.id === cuotaSel) || null, al = ALUMNOS.find(a => a.control === alumnoSel) || ALUMNOS[0];
+  $('gV').innerHTML = `<div class="card"><div class="gp-k"><div><b>${$m(s.rec)}</b><span>recaudado</span></div><div><b>${$m(s.gas)}</b><span>gastado</span></div><div><b style="color:${s.sal < 0 ? '#f87171' : '#4ade80'}">${$m(s.sal)}</b><span>saldo en caja</span></div></div></div>
+  <div class="card gp-c"><h3>Cuotas del grupo</h3><div class="gp-r"><input id="qC" placeholder="Concepto (ej. Impresiones)"><input id="qM" type="number" inputmode="decimal" min="0" placeholder="Monto por alumno"><button class="ag-b p" onclick="addQ()">Crear cuota</button></div>
+  ${cu.map(x => { const n = Object.values(x.pagos || {}).filter(Boolean).length; return `<div class="ag-it" style="--c:#d4af37;cursor:pointer" onclick="cuotaSel='${x.id}';vTesoreria()"><div><b>${esc(x.concepto)} · ${$m(x.monto)}</b><small>Pagaron ${n}/${ALUMNOS.length} · recaudado ${$m(n * x.monto)} · falta ${$m((ALUMNOS.length - n) * x.monto)}</small></div><button class="ag-x" onclick="event.stopPropagation();delQ('${x.id}')" aria-label="Eliminar">✕</button></div>`; }).join('') || vacio('Crea una cuota para llevar quién ya pagó.')}
+  ${q ? `<div class="gp-c"><h3 style="font-size:15px">${esc(q.concepto)}: marca quién pagó</h3><div class="gp-pg">${ALUMNOS.map(a => `<label><input type="checkbox" ${(q.pagos || {})[ctl(a.control)] ? 'checked' : ''} onchange="pagar('${q.id}','${ctl(a.control)}',this.checked)">${esc(a.nombre.split(' ').slice(0, 3).join(' '))}</label>`).join('')}</div></div>` : ''}</div>
+  <div class="card gp-c"><h3>Gastos</h3><div class="gp-r"><input id="xC" placeholder="Concepto del gasto"><input id="xM" type="number" inputmode="decimal" min="0" placeholder="Monto"><button class="ag-b p" onclick="addG()">Registrar gasto</button></div>
+  ${g.length ? g.slice().reverse().map(x => `<div class="ag-it" style="--c:#f87171"><div><b>${esc(x.concepto)}</b><small>${fecha(x.fecha)}</small></div><b style="color:#fff">${$m(x.monto)}</b><button class="ag-x" onclick="delG('${x.id}')" aria-label="Eliminar">✕</button></div>`).join('') : vacio('Sin gastos registrados.')}</div>
+  <div class="card gp-c"><h3>Estado de cuenta por alumno</h3><div class="gp-r"><select id="eA" onchange="alumnoSel=this.value;vTesoreria()">${ALUMNOS.map(a => `<option value="${a.control}" ${a.control === alumnoSel ? 'selected' : ''}>${esc(a.nombre)}</option>`).join('')}</select></div>
+  ${cu.length ? cu.map(x => { const ok = (x.pagos || {})[ctl(al.control)]; return `<div class="ag-it" style="--c:${ok ? '#4ade80' : '#f87171'}"><div><b>${esc(x.concepto)}</b><small>${$m(x.monto)}</small></div><span class="gp-tag ${ok ? 'v' : 'r'}">${ok ? 'Pagado' : 'Debe'}</span></div>`; }).join('') + `<p style="color:#e8eef6;margin-top:10px">Adeudo total: <b>${$m(cu.reduce((t, x) => t + ((x.pagos || {})[ctl(al.control)] ? 0 : x.monto), 0))}</b></p>` : vacio('Aún no hay cuotas.')}</div>`;
+}
+const addQ = () => { const c = $('qC').value.trim(), m = +$('qM').value; if (!c || !(m > 0)) return alert('Escribe el concepto y un monto mayor a 0.'); const cu = L('cuotas', []), n = { id:id(), concepto:c, monto:m, pagos:{} }; cu.push(n); S('cuotas', cu); cuotaSel = n.id; vTesoreria(); };
+const delQ = i => { if (confirm('¿Eliminar la cuota y sus pagos?')) { S('cuotas', L('cuotas', []).filter(x => x.id !== i)); if (cuotaSel === i) cuotaSel = null; vTesoreria(); } };
+const pagar = (i, c, v) => { const cu = L('cuotas', []); cu.forEach(x => { if (x.id === i) { x.pagos = x.pagos || {}; x.pagos[c] = v; } }); S('cuotas', cu); vTesoreria(); };
+const addG = () => { const c = $('xC').value.trim(), m = +$('xM').value; if (!c || !(m > 0)) return alert('Escribe el concepto y un monto mayor a 0.'); const g = L('gastos', []); g.push({ id:id(), concepto:c, monto:m, fecha:HOY }); S('gastos', g); vTesoreria(); };
+const delG = i => { S('gastos', L('gastos', []).filter(x => x.id !== i)); vTesoreria(); };
+// ---- Avisos y protocolos ----
+function vAvisos() {
+  const av = L('avisos', []).sort((a, b) => (b.urgente - a.urgente) || b.fecha.localeCompare(a.fecha) || b.id.localeCompare(a.id));
+  $('gV').innerHTML = `<div class="card"><h3 style="color:#d4af37">Tablón de anuncios</h3><div class="gp-r"><input id="vT" placeholder="Título (ej. Examen de inglés)"><textarea id="vD" placeholder="Detalle del aviso…"></textarea><label style="color:#e8eef6;display:flex;gap:8px;align-items:center;min-height:44px"><input type="checkbox" id="vU" style="width:20px;height:20px;accent-color:#f87171">Urgente</label><button class="ag-b p" onclick="addAv()">Publicar</button></div>
+  ${av.length ? av.map(a => `<div class="ag-it ${a.urgente ? 'gp-ur' : ''}" style="--c:${a.urgente ? '#f87171' : '#d4af37'}"><div><b>${a.urgente ? '🚨 ' : ''}${esc(a.titulo)}</b><small>${fecha(a.fecha)}</small><small style="color:#cbd5e1;white-space:pre-wrap">${esc(a.texto)}</small></div><button class="ag-b" onclick="shAv('${a.id}')">Compartir</button><button class="ag-x" onclick="delAv('${a.id}')" aria-label="Eliminar">✕</button></div>`).join('') : vacio('No hay avisos publicados.')}</div>` +
+  listaEd('protocolos', [{ t:'Emergencia médica', d:'Avisar de inmediato al docente en turno y a Orientación. En caso grave, llamar al 911.' }, { t:'Sismo o evacuación', d:'' }, { t:'Incendio', d:'' }], 'Protocolos de emergencia', 'Escribe aquí los pasos del protocolo del plantel');
+}
+function addAv() { const t = $('vT').value.trim(); if (!t) return alert('Escribe el título del aviso.'); const a = L('avisos', []); a.push({ id:id(), titulo:t, texto:$('vD').value.trim(), urgente:$('vU').checked, fecha:HOY }); S('avisos', a); vAvisos(); }
+const delAv = i => { S('avisos', L('avisos', []).filter(x => x.id !== i)); vAvisos(); };
+const shAv = i => { const a = L('avisos', []).find(x => x.id === i); copiar(`${a.urgente ? '🚨 URGENTE · ' : ''}*${a.titulo}*\n${a.texto}\n— Jefatura del Grupo 101`); };
+document.addEventListener('DOMContentLoaded', () => go('resumen'));
+</script>
+</body>
+</html>
